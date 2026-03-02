@@ -82,28 +82,33 @@ Save results as `vision_analysis` on each post in `saved_posts.json`. Process in
 
 **Template:** `templates/pipeline/synthesis_runner.py`
 
-Calls Claude Haiku API to synthesize caption + OCR + audio + vision into one searchable paragraph per post.
+Synthesizes caption + OCR + audio + vision into one searchable paragraph per post.
 
-**Key settings:**
-```python
-MODEL = "claude-haiku-4-5-20251001"
-BATCH_SIZE = 15        # posts per API call
-SAVE_EVERY = 20        # save checkpoint frequency
-RATE_LIMIT_DELAY = 1.0 # seconds between calls
-```
+**Two modes — ask the user which they prefer:**
 
-**Run:**
+| Mode | Cost | Speed | How it works |
+|------|------|-------|-------------|
+| `--mode subagent` (default) | **Free** on Max plan | Agent-driven loop | Generates prompt files → agent feeds to subagents |
+| `--mode api` | **Paid** (Anthropic API key) | Automated batch | Direct API calls, fully scripted |
+
+**Run (free, default):**
 ```bash
-ANTHROPIC_API_KEY=sk-... python3 synthesis_runner.py
-python3 synthesis_runner.py --stats  # check progress
+python3 synthesis_runner.py                # generates prompts in data/synthesis_prompts/
+python3 synthesis_runner.py --stats        # check progress
+```
+Then feed each prompt file to a Claude Haiku subagent and merge results back.
+
+**Run (paid, automated):**
+```bash
+ANTHROPIC_API_KEY=sk-... python3 synthesis_runner.py --mode api
 ```
 
 **What it does:**
 1. Finds posts without `final_explainer`
 2. Builds compact input (caption + OCR + audio + vision metadata)
-3. Sends batches of 15 to Haiku with synthesis prompt
-4. Merges results into source JSON with fcntl file locking
-5. Saves every 20 posts (safe to interrupt and resume)
+3. Batches of 15 posts → generates prompts or sends to API
+4. Results merged into source JSON with atomic writes
+5. Checkpoints every 20 posts (safe to interrupt and resume)
 
 **Gotchas:**
 - Posts with `extraction_status: "partial:no_audio"` are skipped (run audio extraction first)

@@ -1,17 +1,24 @@
 """
-Phase 2-3: Video Analysis — Claude Subagent Batch Processing
+Phase 2-3: Video Analysis — Claude Vision Batch Processing
 
-Sends batches of key frames to Claude Opus/Sonnet subagents for structured extraction.
+Sends batches of key frames to Claude Opus/Sonnet for structured extraction.
 The extraction schema is customizable — replace the EXTRACTION_SCHEMA and SYSTEM_PROMPT
 for your domain.
+
+TWO MODES:
+  --mode subagent  (DEFAULT) Generates prompt files with base64 images for Claude subagents
+                   (FREE on Max plan). The agent reads each file and feeds it to a subagent.
+  --mode api       Uses direct Anthropic API calls (PAID, requires ANTHROPIC_API_KEY).
+                   Faster batch processing, but costs money per token.
 
 Input: data/video_manifest.json + frame images
 Output: data/video_extracted.json
 
 Usage:
-  python video_analyze.py analyze --model opus --batch-size 6
-  python video_analyze.py merge                                  # Merge batch results
-  python video_analyze.py stats                                  # Show counts
+  python video_analyze.py analyze                            # Subagent mode (free)
+  python video_analyze.py analyze --mode api --model opus    # API mode (paid)
+  python video_analyze.py merge                              # Merge batch results
+  python video_analyze.py stats                              # Show counts
 """
 
 import base64
@@ -24,9 +31,10 @@ from pathlib import Path
 MANIFEST_PATH = Path("data/video_manifest.json")
 OUTPUT_PATH = Path("data/video_extracted.json")
 BATCH_DIR = Path("data/video_batches")
+PROMPTS_DIR = Path("data/video_prompts")  # For subagent mode
 
 # Extraction schema — customize for your domain.
-# This example extracts recipes. Replace fields for art analysis, tutorials, etc.
+# This example extracts general video content. Uncomment domain-specific fields as needed.
 EXTRACTION_SCHEMA = {
     "postId": "string",
     "title": "string",
@@ -35,12 +43,19 @@ EXTRACTION_SCHEMA = {
     "videoSummary": "literal description of what happens in the video",
     "videoOnlyInsights": ["things ONLY visible in video, not in text"],
     "confidence": "high|medium|low",
-    # --- Domain-specific fields (recipe example) ---
+    # --- Recipe extraction ---
     # "isRecipe": "boolean",
     # "ingredients": [{"amount": "", "item": "", "note": ""}],
     # "instructions": [{"step": 1, "text": ""}],
     # "tips": ["string"],
     # "cuisineTags": [], "dietaryTags": [],
+    # --- Tutorial extraction ---
+    # "tool": "string", "prerequisites": ["string"],
+    # "steps": [{"step": 1, "text": "", "duration": ""}],
+    # "difficulty": "beginner|intermediate|advanced",
+    # --- Exercise extraction ---
+    # "exercise": "string", "muscleGroup": "string",
+    # "sets": "number", "reps": "string", "equipment": ["string"],
 }
 
 SYSTEM_PROMPT = """You are analyzing Instagram video content through key frames.
@@ -79,7 +94,6 @@ def build_batch_prompt(batch_items, posts_context=None):
     for item in batch_items:
         post_id = item["postId"]
         lines.append(f"--- POST {post_id} ---")
-        # Additional text context if available
         if posts_context and post_id in posts_context:
             ctx = posts_context[post_id]
             if ctx.get("text"):
@@ -114,72 +128,58 @@ def build_vision_messages(batch_items, text_prompt):
     return [{"role": "user", "content": content}]
 
 
-def analyze_batch(batch_items, client, model, posts_context=None):
-    """Send a batch to Claude for analysis."""
-    prompt = build_batch_prompt(batch_items, posts_context)
-    messages = build_vision_messages(batch_items, prompt)
+def generate_subagent_prompts(manifest, batch_size):
+    """Generate prompt files that an agent can feed to Claude subagents (FREE)."""
+    PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    response = client.messages.create(
-        model=model,
-        max_tokens=8192,
-        system=SYSTEM_PROMPT,
-        messages=messages,
-    )
-
-    text = response.content[0].text
-    try:
-        results = json.loads(text)
-    except json.JSONDecodeError:
-        import re
-        match = re.search(r'\[.*\]', text, re.DOTALL)
-        results = json.loads(match.group()) if match else []
-
-    return results
-
-
-def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["analyze", "merge", "stats"])
-    parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
-    parser.add_argument("--limit", type=int, default=None)
-    args = parser.parse_args()
-
-    if args.command == "stats":
-        if OUTPUT_PATH.exists():
-            with open(OUTPUT_PATH) as f:
-                data = json.load(f)
-            print(f"Extracted: {len(data)} posts")
-        batch_files = list(BATCH_DIR.glob("batch_*.json")) if BATCH_DIR.exists() else []
-        print(f"Batch files: {len(batch_files)}")
-        return
-
-    if args.command == "merge":
-        all_results = {}
-        for f in sorted(BATCH_DIR.glob("batch_*.json")):
+    # Skip already-processed
+    existing = set()
+    if BATCH_DIR.exists():
+        for f in BATCH_DIR.glob("batch_*.json"):
             with open(f) as fh:
-                batch = json.load(fh)
-            for item in batch:
-                pid = item.get("postId", "")
-                if pid:
-                    all_results[pid] = item  # Dedup by postId
+                for item in json.load(fh):
+                    existing.add(item.get("postId", ""))
 
-        results = list(all_results.values())
-        with open(OUTPUT_PATH, "w") as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
-        print(f"Merged {len(results)} unique posts → {OUTPUT_PATH}")
+    remaining = [m for m in manifest if m["postId"] not in existing]
+    print(f"Total: {len(manifest)}, Already processed: {len(existing)}, Remaining: {len(remaining)}")
+
+    if not remaining:
+        print("All videos already processed.")
         return
 
-    # ============ ANALYZE ============
+    batch_num = 0
+    for i in range(0, len(remaining), batch_size):
+        batch = remaining[i:i+batch_size]
+        prompt = build_batch_prompt(batch)
+
+        # Write prompt text
+        prompt_path = PROMPTS_DIR / f"batch_{batch_num:04d}.txt"
+        with open(prompt_path, "w") as f:
+            f.write(f"SYSTEM: {SYSTEM_PROMPT}\n\n{prompt}")
+
+        # Write frame paths for the agent to include as images
+        frames_path = PROMPTS_DIR / f"batch_{batch_num:04d}_frames.json"
+        frame_data = []
+        for item in batch:
+            frame_data.append({
+                "postId": item["postId"],
+                "framePaths": item.get("framePaths", []),
+            })
+        with open(frames_path, "w") as f:
+            json.dump(frame_data, f, indent=2)
+
+        batch_num += 1
+
+    print(f"\nGenerated {batch_num} prompt files in {PROMPTS_DIR}/")
+    print(f"For each batch, feed the prompt + frame images to a Claude Opus subagent.")
+    print(f"Save results as batch_NNNN.json in {BATCH_DIR}/, then run 'merge' to combine.")
+
+
+def run_api_mode(manifest, model, batch_size):
+    """Run analysis via direct Anthropic API calls (PAID)."""
     from anthropic import Anthropic
     client = Anthropic()
 
-    manifest = load_manifest()
-    if args.limit:
-        manifest = manifest[:args.limit]
-
-    # Skip already-processed
     existing = set()
     if BATCH_DIR.exists():
         for f in BATCH_DIR.glob("batch_*.json"):
@@ -193,13 +193,28 @@ def main():
     BATCH_DIR.mkdir(parents=True, exist_ok=True)
     batch_idx = len(list(BATCH_DIR.glob("batch_*.json")))
 
-    for i in range(0, len(remaining), args.batch_size):
-        batch = remaining[i:i+args.batch_size]
-        print(f"Batch {batch_idx}: {len(batch)} posts ({args.model})...", end=" ", flush=True)
+    for i in range(0, len(remaining), batch_size):
+        batch = remaining[i:i+batch_size]
+        print(f"Batch {batch_idx}: {len(batch)} posts ({model})...", end=" ", flush=True)
+
+        prompt = build_batch_prompt(batch)
+        messages = build_vision_messages(batch, prompt)
 
         try:
-            results = analyze_batch(batch, client, args.model)
-            # Save batch
+            response = client.messages.create(
+                model=model,
+                max_tokens=8192,
+                system=SYSTEM_PROMPT,
+                messages=messages,
+            )
+            text = response.content[0].text
+            try:
+                results = json.loads(text)
+            except json.JSONDecodeError:
+                import re
+                match = re.search(r'\[.*\]', text, re.DOTALL)
+                results = json.loads(match.group()) if match else []
+
             batch_path = BATCH_DIR / f"batch_{batch_idx:04d}.json"
             with open(batch_path, "w") as f:
                 json.dump(results, f, ensure_ascii=False, indent=2)
@@ -208,9 +223,59 @@ def main():
         except Exception as e:
             print(f"ERROR: {e}")
 
-        time.sleep(1)  # Rate limiting
+        time.sleep(1)
 
-    print(f"\nDone. Run 'python {sys.argv[0]} merge' to combine results.")
+    print(f"\nDone. Run 'merge' to combine results.")
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=["analyze", "merge", "stats"])
+    parser.add_argument("--mode", default="subagent", choices=["subagent", "api"],
+                        help="subagent (free on Max) or api (paid, requires ANTHROPIC_API_KEY)")
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
+    parser.add_argument("--limit", type=int, default=None)
+    args = parser.parse_args()
+
+    if args.command == "stats":
+        if OUTPUT_PATH.exists():
+            with open(OUTPUT_PATH) as f:
+                data = json.load(f)
+            print(f"Extracted: {len(data)} posts")
+        batch_files = list(BATCH_DIR.glob("batch_*.json")) if BATCH_DIR.exists() else []
+        print(f"Batch files: {len(batch_files)}")
+        prompt_files = list(PROMPTS_DIR.glob("batch_*.txt")) if PROMPTS_DIR.exists() else []
+        print(f"Prompt files: {len(prompt_files)}")
+        return
+
+    if args.command == "merge":
+        all_results = {}
+        for f in sorted(BATCH_DIR.glob("batch_*.json")):
+            with open(f) as fh:
+                batch = json.load(fh)
+            for item in batch:
+                pid = item.get("postId", "")
+                if pid:
+                    all_results[pid] = item
+        results = list(all_results.values())
+        with open(OUTPUT_PATH, "w") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+        print(f"Merged {len(results)} unique posts → {OUTPUT_PATH}")
+        return
+
+    # ============ ANALYZE ============
+    manifest = load_manifest()
+    if args.limit:
+        manifest = manifest[:args.limit]
+
+    if args.mode == "api":
+        print(f"Running in API mode (PAID — requires ANTHROPIC_API_KEY, model: {args.model})")
+        run_api_mode(manifest, args.model, args.batch_size)
+    else:
+        print("Running in subagent mode (FREE on Max plan)")
+        generate_subagent_prompts(manifest, args.batch_size)
 
 
 if __name__ == "__main__":

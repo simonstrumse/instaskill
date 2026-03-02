@@ -57,21 +57,32 @@ python3 video_prepare.py --frames 16 --video-dir data/{collection}/videos
 - Falls back to uniform sampling if scene detection yields too few frames
 - Generates a batch manifest for Phase 2
 
-## Phase 2: Analyze with AI (Subagents)
+## Phase 2: Analyze with AI
 
 **Template:** `templates/video/video_analyze.py`
 
-Launch Claude subagents to analyze batches of video frames with structured JSON output.
+Analyze batches of video frames with Claude vision for structured extraction.
+
+**Two modes — ask the user which they prefer:**
+
+| Mode | Cost | Speed | How it works |
+|------|------|-------|-------------|
+| `--mode subagent` (default) | **Free** on Max plan | Agent-driven loop | Generates prompt + frame files → agent feeds to subagents |
+| `--mode api` | **Paid** (Anthropic API key) | Automated batch | Direct API calls with base64 images |
 
 ```bash
-python3 video_analyze.py --model opus --batch-size 6 --schema schema.json
+# Free (default) — generates prompts for the agent to feed to subagents
+python3 video_analyze.py analyze
+
+# Paid — direct API calls
+ANTHROPIC_API_KEY=sk-... python3 video_analyze.py analyze --mode api --model opus
 ```
 
 **Parameters:**
-- `--model opus|sonnet` — which Claude model (default opus). Opus is more accurate; Sonnet is faster for simpler analysis
-- `--batch-size N` — posts per batch (default 6). Larger = fewer API calls but longer context
+- `--mode subagent|api` — free subagent prompts or paid direct API (default: subagent)
+- `--model opus|sonnet` — which Claude model for API mode (default opus). Opus is more accurate; Sonnet is faster
+- `--batch-size N` — posts per batch (default 6). Larger = fewer calls but longer context
 - `--limit N` — only process first N posts
-- `--schema PATH` — JSON schema for extraction output (customize per domain)
 
 **Subagent prompt template** produces per-post JSON. The schema is customizable — here's a recipe example:
 ```json
@@ -100,11 +111,13 @@ For non-recipe domains, replace the schema fields. Examples:
 
 Combine results from multiple batch runs, deduplicating by postId. Handled by `video_analyze.py merge` command or as a step in the analyze script.
 
-## Phase 4: Gemini Enrichment (Optional)
+## Phase 4: Gemini Enrichment (Optional, Paid)
 
 **Template:** `templates/video/video_enrich.py`
 
-Send full videos to Gemini 2.0 Flash for comparison against Opus results. Gemini watches the complete video (not just key frames) and reports what Opus missed.
+**This phase is entirely optional.** It requires a Google API key and costs money. Skip it if you want a free-only pipeline — Phase 2 with Claude subagents is sufficient for most use cases.
+
+Send full videos to Gemini 2.0 Flash for comparison against Claude results. Gemini watches the complete video (not just key frames) and reports what Claude missed.
 
 ```bash
 python3 video_enrich.py --delay 5 --video-dir data/{collection}/videos
@@ -178,12 +191,20 @@ The merge step is always a **deterministic script**, not an LLM call. No interpr
 ## Requirements
 
 ```
-anthropic          # Claude API (for subagents)
-google-generativeai # Gemini API (Phase 4 only)
-Pillow             # Image processing for key frames
+ffmpeg             # System binary (brew install ffmpeg)
 ```
 
-Plus `ffmpeg` installed on the system.
+**If using API mode (paid):**
+```
+anthropic          # Claude API (Phase 2 --mode api only)
+```
+
+**If using Gemini enrichment (optional, paid):**
+```
+google-generativeai # Gemini API (Phase 4 only)
+```
+
+No external packages needed for subagent mode — just ffmpeg and Claude Code with Max plan.
 
 ## File Reference (templates)
 

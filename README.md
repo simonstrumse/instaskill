@@ -103,10 +103,24 @@ templates/
 ## Requirements
 
 - Python 3.10+ (3.12+ recommended)
-- Claude Code with Max plan (subagents are free)
+- Claude Code with Max plan (subagents are free — the entire pipeline can run without API keys)
 - macOS with Apple Silicon (for Whisper MLX + OCR in pipeline skill)
-- Convex account (for deep dive frontend, optional)
 - ffmpeg (for video pipeline only)
+- Convex account (for deep dive frontend, optional)
+
+### What's free vs. paid
+
+The entire pipeline works on a Max plan with zero API keys. Each skill offers an optional paid mode for faster batch processing:
+
+| Feature | Free (Max plan) | Paid (API keys) |
+|---------|----------------|-----------------|
+| Sync + download posts | Free (Chrome cookies) | — |
+| Vision analysis | Claude subagents | Gemini 2.0 Flash |
+| Synthesis | Claude subagents | Anthropic API (Haiku) |
+| Embeddings, topics, sentiment | Local models | — |
+| Video frame analysis | Claude subagents | Anthropic API (Opus) |
+| Video enrichment | Skip (optional) | Gemini API |
+| Deep dive (entities, events, etc.) | Claude subagents | — |
 
 ## Architecture
 

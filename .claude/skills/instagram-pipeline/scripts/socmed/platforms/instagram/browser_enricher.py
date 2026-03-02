@@ -787,14 +787,20 @@ def main():
         run_media_download(limit=args.limit)
 
     elif args.command == "stats":
-        from socmed.platforms.instagram.enricher import get_enrichment_stats
-        stats = get_enrichment_stats()
-        print(f"Total:     {stats['total']}")
-        print(f"Enriched:  {stats['enriched']}")
-        print(f"Pending:   {stats['pending']}")
-        print(f"Deleted:   {stats['deleted']}")
-        if stats["pending"]:
-            eta = stats["pending"] * 3 / 60
+        # Compute stats directly from the store
+        from socmed.config import DATA_FILES
+        from socmed.storage.json_store import JsonStore
+        store = JsonStore(DATA_FILES["instagram"]["saved_posts"])
+        posts = store.read()
+        enriched = sum(1 for p in posts if p.get("source") == "archive+api")
+        pending = sum(1 for p in posts if p.get("source") == "archive")
+        deleted = sum(1 for p in posts if p.get("deleted"))
+        print(f"Total:     {len(posts)}")
+        print(f"Enriched:  {enriched}")
+        print(f"Pending:   {pending}")
+        print(f"Deleted:   {deleted}")
+        if pending:
+            eta = pending * 3 / 60
             print(f"Est. time: ~{eta:.0f} min ({eta/60:.1f} hrs) at 20/min")
 
         # Media stats
