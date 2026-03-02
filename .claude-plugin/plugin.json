@@ -1,0 +1,10 @@
+{
+  "name": "instaskill",
+  "description": "Turn your Instagram saved posts into a searchable, analyzable archive. Sync, analyze, deep dive, and extract structured data from video — all free on a Max plan.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Simon Strumse"
+  },
+  "repository": "https://github.com/simonstrumse/instaskill",
+  "license": "MIT"
+}
