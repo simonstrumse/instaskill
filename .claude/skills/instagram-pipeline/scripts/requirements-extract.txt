@@ -1,0 +1,5 @@
+# Extraction dependencies (macOS / Apple Silicon only)
+# Install these only if you need Whisper transcription + OCR
+lightning-whisper-mlx>=0.0.10
+ocrmac>=1.0.0
+opencv-python>=4.8.0

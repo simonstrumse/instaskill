@@ -2,7 +2,7 @@
 
 Claude Code skills + reusable templates for analyzing Instagram saved posts collections.
 
-Three skills that turn a raw `saved_posts.json` export into an interactive data journalism archive — from embeddings and topic modeling through editorial chronicles and person profiles.
+Four skills that cover the entire Instagram saved posts workflow — from syncing posts directly from Instagram's API through analysis, editorial deep dives, and video extraction.
 
 ## Quick Start
 
@@ -13,7 +13,15 @@ Three skills that turn a raw `saved_posts.json` export into an interactive data 
 claude plugins add simonstrumse/instaskill
 ```
 
-### 2. Run the base analysis pipeline
+### 2. Sync your saved posts from Instagram
+
+```
+/instagram-pipeline
+```
+
+Syncs saved posts directly from Instagram's API using Chrome cookies — no archive download needed. Downloads media and extracts text (Whisper transcription + OCR). ~260 posts/min.
+
+### 3. Run the base analysis pipeline
 
 ```
 /instagram-analysis
@@ -21,7 +29,7 @@ claude plugins add simonstrumse/instaskill
 
 Processes your `saved_posts.json` through 10 phases: synthesis → embeddings → UMAP → topics → sentiment → networks → temporal → psychological profile → export → dashboard.
 
-### 3. Build a deep dive on a collection
+### 4. Build a deep dive on a collection
 
 ```
 /instagram-deep-dive
@@ -29,7 +37,7 @@ Processes your `saved_posts.json` through 10 phases: synthesis → embeddings �
 
 Takes a single saved collection (e.g., "Climate", "Music", "Cooking") and builds a full editorial archive: entity extraction, event detection, narrative framing, chronicle prose, person/account profiles, and Convex-backed frontend.
 
-### 4. Extract structured data from videos
+### 5. Extract structured data from videos
 
 ```
 /video-analysis
@@ -41,6 +49,7 @@ Multi-model video pipeline: ffmpeg scene detection → Claude Opus frame analysi
 
 | Skill | What it does |
 |-------|-------------|
+| `instagram-pipeline` | Sync saved posts from Instagram API, download media, extract text (Whisper + OCR). Scripts bundled with skill. |
 | `instagram-analysis` | Full analysis pipeline: raw posts → embeddings, topics, sentiment, networks, temporal patterns, psychological profile |
 | `instagram-deep-dive` | Build narrative archives from a single collection: entities, events, narratives, claims, chronicles, profiles |
 | `video-analysis` | Multi-model video extraction: frames + full-video → structured data with trust hierarchy |

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "socmed-instagram"
+version = "0.1.0"
+description = "Instagram saved posts pipeline — sync, download, and extract text from saved posts"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "requests>=2.28.0",
+    "browser-cookie3>=0.19.0",
+]
+
+[project.optional-dependencies]
+extract = [
+    "lightning-whisper-mlx>=0.0.10",
+    "ocrmac>=1.0.0",
+    "opencv-python>=4.8.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["socmed*"]
