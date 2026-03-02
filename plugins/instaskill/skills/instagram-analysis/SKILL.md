@@ -1,18 +1,8 @@
 ---
 name: instagram-analysis
 description: >
-  Running the full Instagram saved posts analysis pipeline: from raw saved_posts.json
-  through synthesis, embeddings, UMAP, topic modeling, sentiment, network analysis,
-  temporal patterns, psychological profiling, and Streamlit dashboard. Use when
-  reproducing or extending the analysis pipeline, running individual phases, debugging
-  pipeline errors, or setting up the pipeline in a new environment.
-
-  Trigger when:
-  - User asks to run or re-run the analysis pipeline
-  - User asks about embedding, topic modeling, sentiment analysis, or similar scripts
-  - User encounters LanceDB, BERTopic, UMAP, or sentence-transformers errors
-  - User asks about the Streamlit dashboard or specific dashboard pages
-  - User asks about synthesis (final_explainer field) or Claude Haiku API integration
+  Analyze Instagram saved posts: synthesis, embeddings, UMAP, topics, sentiment,
+  networks, temporal patterns, psychological profile, and dashboard.
 ---
 
 # Instagram Saved Posts — Full Analysis Pipeline

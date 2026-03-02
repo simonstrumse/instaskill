@@ -1,17 +1,8 @@
 ---
 name: instagram-deep-dive
 description: >
-  Build narrative deep dives from Instagram saved post collections — editorial
-  data magazines with chronicles, person profiles, creator pages, and exploratory
-  analysis. Use when the user wants to create a chronicle, timeline, narrative
-  archive, or editorial deep dive from a saved posts collection.
-
-  Trigger when:
-  - User asks to build a "deep dive" on an Instagram collection
-  - User asks to create a chronicle, timeline, or narrative archive
-  - User asks about Convex schema or queries for Instagram data
-  - User asks to reproduce the deep dive for a new collection
-  - User asks about person profiles, alias tables, or entity extraction
+  Build editorial deep dives from Instagram collections: chronicles, person profiles,
+  creator pages, entity extraction, event detection, and Convex-backed frontend.
 ---
 
 # Instagram Deep Dive Skill

@@ -1,15 +1,8 @@
 ---
 name: video-analysis
 description: >
-  Multi-model video analysis pipeline: key frame extraction, Claude Opus frame
-  analysis, Gemini full-video enrichment, and deterministic merge with trust
-  hierarchy. Use when the user wants to extract structured data from Instagram
-  reels or video content.
-
-  Trigger when:
-  - User asks to analyze videos or reels
-  - User asks about key frames, video extraction, or video recipes
-  - User wants structured data from video content (recipes, tutorials, exercises)
+  Extract structured data from videos: key frames, Opus analysis, Gemini enrichment,
+  deterministic merge. For recipes, tutorials, exercises from Instagram reels.
 ---
 
 # Video Analysis Skill

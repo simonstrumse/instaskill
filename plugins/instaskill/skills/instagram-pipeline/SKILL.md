@@ -1,12 +1,8 @@
 ---
 name: instagram-pipeline
 description: >
-  Full Instagram saved posts pipeline: sync from API, download media, extract text.
-  Use when the user wants to process their Instagram saved posts — sync collections,
-  download media, run Whisper audio transcription + OCR on images/video frames,
-  or check pipeline status. No archive download needed — works directly from Chrome cookies.
-  Handles: "sync my Instagram", "process collection X", "extract collection X",
-  "instagram status", "list my collections", "run pipeline on X".
+  Sync Instagram saved posts from API, download media, and extract text via
+  Whisper transcription + OCR. Works from Chrome cookies — no archive needed.
 argument-hint: "[collection-name or 'status' or 'collections']"
 allowed-tools:
   - Bash
