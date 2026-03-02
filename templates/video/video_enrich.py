@@ -19,9 +19,12 @@ import time
 from pathlib import Path
 
 # ============ CONFIGURATION ============
-VIDEO_DIR = Path("data/videos")
-EXTRACTED_PATH = Path("data/video_extracted.json")
-OUTPUT_DIR = Path("data/gemini_enrichments")
+# Default paths — override with --data-dir for collection-scoped directories
+# e.g., --data-dir data/food  →  data/food/videos, data/food/video_extracted.json, etc.
+DATA_DIR = Path("data")
+VIDEO_DIR = DATA_DIR / "videos"
+EXTRACTED_PATH = DATA_DIR / "video_extracted.json"
+OUTPUT_DIR = DATA_DIR / "gemini_enrichments"
 OUTPUT_PATH = OUTPUT_DIR / "enrichment_results.json"
 DEFAULT_DELAY = 5  # Seconds between API calls
 # =======================================
@@ -52,11 +55,6 @@ Respond as JSON:
 
 If my analysis was comprehensive and you found nothing new, set overallAddedValue to "none"
 and leave all arrays empty. Do NOT hallucinate findings."""
-
-
-def load_extracted():
-    with open(EXTRACTED_PATH) as f:
-        return json.load(f)
 
 
 def find_video(post_id, video_dir):
@@ -114,8 +112,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--delay", type=int, default=DEFAULT_DELAY)
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--video-dir", type=str, default=str(VIDEO_DIR))
+    parser.add_argument("--data-dir", type=str, default=None,
+                        help="Base data directory (e.g., data/food for collection-scoped paths)")
+    parser.add_argument("--video-dir", type=str, default=None)
     args = parser.parse_args()
+
+    # Resolve collection-scoped paths
+    data_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+    video_dir_resolved = Path(args.video_dir) if args.video_dir else data_dir / "videos"
+    extracted_path = data_dir / "video_extracted.json"
+    output_dir = data_dir / "gemini_enrichments"
+    output_path = output_dir / "enrichment_results.json"
 
     import google.generativeai as genai
 
@@ -135,13 +142,13 @@ def main():
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.0-flash")
 
-    extracted = load_extracted()
-    video_dir = Path(args.video_dir)
+    with open(extracted_path) as f:
+        extracted = json.load(f)
 
     # Load existing enrichments
     existing_results = {}
-    if OUTPUT_PATH.exists():
-        with open(OUTPUT_PATH) as f:
+    if output_path.exists():
+        with open(output_path) as f:
             for item in json.load(f):
                 existing_results[item.get("postId", "")] = item
 
@@ -152,12 +159,12 @@ def main():
     print(f"Extracted: {len(extracted)}, Already enriched: {len(existing_results)}, "
           f"Remaining: {len(remaining)}")
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
     new_results = []
 
     for i, item in enumerate(remaining):
         post_id = item.get("postId", "")
-        video_path = find_video(post_id, video_dir)
+        video_path = find_video(post_id, video_dir_resolved)
 
         if not video_path:
             print(f"  [{i+1}] {post_id}: no video file, skipping")
@@ -180,9 +187,9 @@ def main():
 
     # Merge and save
     all_results = list(existing_results.values()) + new_results
-    with open(OUTPUT_PATH, "w") as f:
+    with open(output_path, "w") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved {len(all_results)} enrichments → {OUTPUT_PATH}")
+    print(f"\nSaved {len(all_results)} enrichments → {output_path}")
 
     # Stats
     added_values = [r.get("overallAddedValue", "none") for r in all_results]

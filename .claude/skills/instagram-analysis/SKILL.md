@@ -296,25 +296,29 @@ python3 export_data.py     # CSV + JSON exports → data/exports/
 
 ---
 
-## Phase 10: Dashboard
+## Phase 10: Dashboard (build in your project)
 
-### Launch
+Build a Streamlit dashboard to explore results. This is **not** a bundled template — you build it in your project directory.
+
 ```bash
+pip install streamlit plotly pyvis
 streamlit run dashboard/app.py
 ```
 
-### Pages
-1. **Overview** (`app.py`) — metrics, charts
-2. **Search** (`pages/1_search.py`) — semantic search via LanceDB + faceted filters
-3. **Galaxy** (`pages/2_galaxy.py`) — UMAP 2D scatter (Plotly), color by collection/mood/topic/sentiment
-4. **Topics** (`pages/3_topics.py`) — BERTopic explorer + stream chart
-5. **Sentiment** (`pages/4_sentiment.py`) — star distribution, emotion pie, monthly timeline
-6. **Network** (`pages/5_network.py`) — account constellation + tag co-occurrence
-7. **Profile** (`pages/6_profile.py`) — PANAS affect gauge, behavior, info diet, humor
-8. **Browse** (`pages/7_browse.py`) — collection browser with local media thumbnails + video
+### Recommended pages
 
-### Media Serving
-The dashboard serves local media from `data/media/instagram/{username}/{post_id}_*.jpg|mp4` via `dashboard/media_helper.py`. If media is not on disk, it degrades gracefully to "No image."
+1. **Overview** — total posts, collection counts, date range, top accounts
+2. **Search** — semantic search via LanceDB + faceted filters (collection, mood, topic)
+3. **Galaxy** — UMAP 2D scatter (Plotly), color by collection/mood/topic/sentiment
+4. **Topics** — BERTopic explorer: topic list, representative posts, stream chart over time
+5. **Sentiment** — star distribution, emotion pie chart, monthly sentiment timeline
+6. **Network** — account constellation + tag co-occurrence (pyvis)
+7. **Profile** — PANAS affect gauge, behavior patterns, info diet, humor analysis
+8. **Browse** — collection browser with local media thumbnails + video playback
+
+### Media serving
+
+Serve local media from `data/media/instagram/{username}/{post_id}_*.jpg|mp4`. Use `st.image()` / `st.video()` with local paths. If media is not on disk, degrade gracefully to a placeholder.
 
 ---
 

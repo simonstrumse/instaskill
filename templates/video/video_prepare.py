@@ -17,9 +17,12 @@ import sys
 from pathlib import Path
 
 # ============ CONFIGURATION ============
-VIDEO_DIR = Path("data/videos")          # Directory containing video files
-FRAMES_DIR = Path("data/video_frames")   # Output directory for key frames
-MANIFEST_PATH = Path("data/video_manifest.json")
+# Default paths — override with --data-dir for collection-scoped directories
+# e.g., --data-dir data/food  →  data/food/videos, data/food/video_frames, etc.
+DATA_DIR = Path("data")
+VIDEO_DIR = DATA_DIR / "videos"           # Directory containing video files
+FRAMES_DIR = DATA_DIR / "video_frames"    # Output directory for key frames
+MANIFEST_PATH = DATA_DIR / "video_manifest.json"
 DEFAULT_FRAMES = 16                       # Frames per video
 SCENE_THRESHOLD = 0.3                     # ffmpeg scene detection threshold
 # =======================================
@@ -91,10 +94,17 @@ def main():
     parser = argparse.ArgumentParser(description="Extract key frames from videos")
     parser.add_argument("--frames", type=int, default=DEFAULT_FRAMES, help="Frames per video")
     parser.add_argument("--limit", type=int, default=None, help="Max videos to process")
-    parser.add_argument("--video-dir", type=str, default=str(VIDEO_DIR))
+    parser.add_argument("--data-dir", type=str, default=None,
+                        help="Base data directory (e.g., data/food for collection-scoped paths)")
+    parser.add_argument("--video-dir", type=str, default=None)
     args = parser.parse_args()
 
-    video_dir = Path(args.video_dir)
+    # Resolve paths: --data-dir sets the base, --video-dir overrides video location
+    data_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+    video_dir = Path(args.video_dir) if args.video_dir else data_dir / "videos"
+    frames_dir = data_dir / "video_frames"
+    manifest_path = data_dir / "video_manifest.json"
+
     videos = get_video_files(video_dir)
     if args.limit:
         videos = videos[:args.limit]
@@ -105,7 +115,7 @@ def main():
     manifest = []
     for i, video in enumerate(videos):
         post_id = video.stem  # Assumes filename is {postId}.mp4
-        output_dir = FRAMES_DIR / post_id
+        output_dir = frames_dir / post_id
         print(f"  [{i+1}/{len(videos)}] {video.name}...", end=" ", flush=True)
 
         # Skip if already extracted
@@ -145,9 +155,9 @@ def main():
         })
 
     # Save manifest
-    with open(MANIFEST_PATH, "w") as f:
+    with open(manifest_path, "w") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
-    print(f"\nManifest: {len(manifest)} videos → {MANIFEST_PATH}")
+    print(f"\nManifest: {len(manifest)} videos → {manifest_path}")
 
 
 if __name__ == "__main__":

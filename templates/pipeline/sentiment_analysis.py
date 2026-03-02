@@ -12,7 +12,6 @@ Output: data/sentiment_scores.json
 """
 
 import json
-import sys
 from pathlib import Path
 
 import torch

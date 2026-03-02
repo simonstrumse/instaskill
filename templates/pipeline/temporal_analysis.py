@@ -60,8 +60,10 @@ def main():
     # Monthly sentiment
     monthly_sentiment = defaultdict(list)
     monthly_emotions = defaultdict(lambda: defaultdict(float))
+    monthly_post_count = Counter()
     for p in posts:
         month = p.get("saved_on", p.get("created_at", ""))[:7]
+        monthly_post_count[month] += 1
         sent = sent_map.get(p["id"], {})
         monthly_sentiment[month].append(sent.get("stars", 3))
         for emo, score in sent.get("emotions", {}).items():
@@ -116,7 +118,7 @@ def main():
             for m, v in sorted(monthly_sentiment.items())
         },
         "monthly_emotions": {
-            m: {k: round(v / max(daily.get(m, 1), 1), 4) for k, v in emos.items()}
+            m: {k: round(v / max(monthly_post_count[m], 1), 4) for k, v in emos.items()}
             for m, emos in sorted(monthly_emotions.items())
         },
         "interest_drift": drift,

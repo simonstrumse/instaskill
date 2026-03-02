@@ -81,7 +81,7 @@ You don't need to remember skill names. Just describe what you want:
 
 ## Templates
 
-Generalized scripts the agent reads as reference and adapts to your data. Not copy-paste — the agent customizes paths, schemas, and domain logic for your collection.
+The `instagram-pipeline` skill bundles runnable scripts directly — just install and run. The other three skills (`instagram-analysis`, `instagram-deep-dive`, `video-analysis`) are **template-driven**: the agent reads the reference scripts below and adapts them to your data. Not copy-paste — the agent customizes paths, schemas, and domain logic for your collection.
 
 ```
 templates/
@@ -105,7 +105,7 @@ templates/
 - Python 3.10+ (3.12+ recommended)
 - Claude Code with Max plan (subagents are free — the entire pipeline can run without API keys)
 - macOS with Apple Silicon (for Whisper MLX + OCR in pipeline skill)
-- ffmpeg (for video pipeline only)
+- ffmpeg (for pipeline media extraction + video analysis)
 - Convex account (for deep dive frontend, optional)
 
 ### What's free vs. paid

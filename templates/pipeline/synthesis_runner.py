@@ -19,7 +19,6 @@ Customize: POSTS_PATH, MODEL, BATCH_SIZE at top of file.
 """
 
 import json
-import os
 import sys
 import time
 from pathlib import Path

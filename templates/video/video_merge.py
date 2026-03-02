@@ -23,11 +23,14 @@ import time
 from pathlib import Path
 
 # ============ CONFIGURATION ============
-EXTRACTED_PATH = Path("data/video_extracted.json")
-ENRICHMENT_PATH = Path("data/gemini_enrichments/enrichment_results.json")
-OUTPUT_PATH = Path("data/video_final.json")
-EXPORT_DIR = Path("data/convex_export")
-QA_DIR = Path("data/qa")
+# Default paths — override with --data-dir for collection-scoped directories
+# e.g., --data-dir data/food  →  data/food/video_extracted.json, etc.
+DATA_DIR = Path("data")
+EXTRACTED_PATH = DATA_DIR / "video_extracted.json"
+ENRICHMENT_PATH = DATA_DIR / "gemini_enrichments" / "enrichment_results.json"
+OUTPUT_PATH = DATA_DIR / "video_final.json"
+EXPORT_DIR = DATA_DIR / "convex_export"
+QA_DIR = DATA_DIR / "qa"
 # =======================================
 
 
@@ -113,19 +116,35 @@ def merge_post(opus, gemini):
 
 
 def main():
-    if "stats" in sys.argv:
-        extracted = load_json(EXTRACTED_PATH)
-        enriched = load_json(ENRICHMENT_PATH)
-        final = load_json(OUTPUT_PATH) if OUTPUT_PATH.exists() else []
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", nargs="?", default="merge", choices=["merge", "stats"])
+    parser.add_argument("--dry", action="store_true")
+    parser.add_argument("--data-dir", type=str, default=None,
+                        help="Base data directory (e.g., data/food for collection-scoped paths)")
+    args = parser.parse_args()
+
+    # Resolve collection-scoped paths
+    data_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+    extracted_path = data_dir / "video_extracted.json"
+    enrichment_path = data_dir / "gemini_enrichments" / "enrichment_results.json"
+    output_path = data_dir / "video_final.json"
+    export_dir = data_dir / "convex_export"
+    qa_dir = data_dir / "qa"
+
+    if args.command == "stats":
+        extracted = load_json(extracted_path)
+        enriched = load_json(enrichment_path)
+        final = load_json(output_path) if output_path.exists() else []
         print(f"Extracted (Opus): {len(extracted)}")
         print(f"Enriched (Gemini): {len(enriched)}")
         print(f"Final (merged): {len(final)}")
         return
 
-    dry_run = "--dry" in sys.argv
+    dry_run = args.dry
 
-    extracted = load_json(EXTRACTED_PATH)
-    enriched = load_json(ENRICHMENT_PATH)
+    extracted = load_json(extracted_path)
+    enriched = load_json(enrichment_path)
 
     print(f"Opus results: {len(extracted)}")
     print(f"Gemini enrichments: {len(enriched)}")
@@ -162,20 +181,20 @@ def main():
         return
 
     # Save merged
-    with open(OUTPUT_PATH, "w") as f:
+    with open(output_path, "w") as f:
         json.dump(merged, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved → {OUTPUT_PATH}")
+    print(f"\nSaved → {output_path}")
 
     # QA report
-    QA_DIR.mkdir(parents=True, exist_ok=True)
+    qa_dir.mkdir(parents=True, exist_ok=True)
     ts = time.strftime("%Y%m%d_%H%M%S")
-    qa_path = QA_DIR / f"merge_changelog_{ts}.json"
+    qa_path = qa_dir / f"merge_changelog_{ts}.json"
     with open(qa_path, "w") as f:
         json.dump(changelog, f, ensure_ascii=False, indent=2)
     print(f"QA report → {qa_path}")
 
     # Summary
-    summary_path = QA_DIR / f"merge_summary_{ts}.txt"
+    summary_path = qa_dir / f"merge_summary_{ts}.txt"
     with open(summary_path, "w") as f:
         f.write(f"Video Merge Summary\n{'='*50}\n")
         f.write(f"Opus results: {len(extracted)}\n")
@@ -191,8 +210,8 @@ def main():
     print(f"Summary → {summary_path}")
 
     # Export JSONL
-    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-    export_path = EXPORT_DIR / "videoAnalysis.jsonl"
+    export_dir.mkdir(parents=True, exist_ok=True)
+    export_path = export_dir / "videoAnalysis.jsonl"
     with open(export_path, "w") as f:
         for item in merged:
             # Serialize complex fields

@@ -40,12 +40,22 @@ def load_all():
     topics = {}
     if os.path.exists(TOPIC_PATH):
         with open(TOPIC_PATH) as f:
-            topics = json.load(f)
+            raw = json.load(f)
+        # Upstream writes a list of {post_id, topic_id, topic_label, ...}
+        if isinstance(raw, list):
+            topics = {item["post_id"]: item for item in raw if "post_id" in item}
+        else:
+            topics = raw
 
     sentiments = {}
     if os.path.exists(SENTIMENT_PATH):
         with open(SENTIMENT_PATH) as f:
-            sentiments = json.load(f)
+            raw = json.load(f)
+        # Upstream writes a list of {post_id, stars, dominant_emotion, emotions, ...}
+        if isinstance(raw, list):
+            sentiments = {item["post_id"]: item for item in raw if "post_id" in item}
+        else:
+            sentiments = raw
 
     umap_coords = {}
     if os.path.exists(UMAP_2D_PATH) and os.path.exists(POST_IDS_PATH):

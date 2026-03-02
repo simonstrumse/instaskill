@@ -28,10 +28,13 @@ import time
 from pathlib import Path
 
 # ============ CONFIGURATION ============
-MANIFEST_PATH = Path("data/video_manifest.json")
-OUTPUT_PATH = Path("data/video_extracted.json")
-BATCH_DIR = Path("data/video_batches")
-PROMPTS_DIR = Path("data/video_prompts")  # For subagent mode
+# Default paths — override with --data-dir for collection-scoped directories
+# e.g., --data-dir data/food  →  data/food/video_manifest.json, etc.
+DATA_DIR = Path("data")
+MANIFEST_PATH = DATA_DIR / "video_manifest.json"
+OUTPUT_PATH = DATA_DIR / "video_extracted.json"
+BATCH_DIR = DATA_DIR / "video_batches"
+PROMPTS_DIR = DATA_DIR / "video_prompts"  # For subagent mode
 
 # Extraction schema — customize for your domain.
 # This example extracts general video content. Uncomment domain-specific fields as needed.
@@ -68,11 +71,6 @@ If unsure, set confidence to "low"."""
 DEFAULT_MODEL = "claude-opus-4-20250514"
 DEFAULT_BATCH_SIZE = 6
 # =======================================
-
-
-def load_manifest():
-    with open(MANIFEST_PATH) as f:
-        return json.load(f)
 
 
 def image_to_base64(path):
@@ -237,36 +235,46 @@ def main():
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--data-dir", type=str, default=None,
+                        help="Base data directory (e.g., data/food for collection-scoped paths)")
     args = parser.parse_args()
 
+    # Resolve collection-scoped paths
+    data_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+    manifest_path = data_dir / "video_manifest.json"
+    output_path = data_dir / "video_extracted.json"
+    batch_dir = data_dir / "video_batches"
+    prompts_dir = data_dir / "video_prompts"
+
     if args.command == "stats":
-        if OUTPUT_PATH.exists():
-            with open(OUTPUT_PATH) as f:
+        if output_path.exists():
+            with open(output_path) as f:
                 data = json.load(f)
             print(f"Extracted: {len(data)} posts")
-        batch_files = list(BATCH_DIR.glob("batch_*.json")) if BATCH_DIR.exists() else []
+        batch_files = list(batch_dir.glob("batch_*.json")) if batch_dir.exists() else []
         print(f"Batch files: {len(batch_files)}")
-        prompt_files = list(PROMPTS_DIR.glob("batch_*.txt")) if PROMPTS_DIR.exists() else []
+        prompt_files = list(prompts_dir.glob("batch_*.txt")) if prompts_dir.exists() else []
         print(f"Prompt files: {len(prompt_files)}")
         return
 
     if args.command == "merge":
         all_results = {}
-        for f in sorted(BATCH_DIR.glob("batch_*.json")):
+        for f in sorted(batch_dir.glob("batch_*.json")):
             with open(f) as fh:
-                batch = json.load(fh)
-            for item in batch:
+                batch_data = json.load(fh)
+            for item in batch_data:
                 pid = item.get("postId", "")
                 if pid:
                     all_results[pid] = item
         results = list(all_results.values())
-        with open(OUTPUT_PATH, "w") as f:
+        with open(output_path, "w") as f:
             json.dump(results, f, ensure_ascii=False, indent=2)
-        print(f"Merged {len(results)} unique posts → {OUTPUT_PATH}")
+        print(f"Merged {len(results)} unique posts → {output_path}")
         return
 
     # ============ ANALYZE ============
-    manifest = load_manifest()
+    with open(manifest_path) as f:
+        manifest = json.load(f)
     if args.limit:
         manifest = manifest[:args.limit]
 

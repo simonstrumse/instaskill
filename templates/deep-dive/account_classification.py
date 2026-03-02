@@ -14,7 +14,6 @@ Customize: ACCOUNT_TYPES and ACCOUNT_LLM_TOP_N in config.py
 """
 
 import json
-import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -192,43 +191,105 @@ def build_output(accounts, classifications):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Classify Instagram accounts")
+    parser.add_argument("command", nargs="?", default="discover",
+                        choices=["discover", "merge"],
+                        help="discover: generate LLM prompt; merge: apply LLM results + similarity")
+    parser.add_argument("--llm-results", type=str, default=None,
+                        help="Path to JSON file with LLM classification results (for merge)")
+    args = parser.parse_args()
+
     posts, embeddings = load_data()
     print(f"Loaded {len(posts)} posts")
 
     accounts = build_account_stats(posts)
     print(f"Found {len(accounts)} unique accounts")
 
-    # Print discovery prompt for the user/agent
-    print(f"\n--- DISCOVERY MODE ---")
-    print(f"Top 20 accounts by post count:")
-    for username, acct in sorted(accounts.items(), key=lambda x: -len(x[1]["posts"]))[:20]:
-        topics = [t for t, _ in acct["topics"].most_common(3)]
-        print(f"  @{username:30s} {len(acct['posts']):4d} posts  topics: {', '.join(topics)}")
-
-    print(f"\nCurrent types: {ACCOUNT_TYPES}")
-    print(f"Review the accounts above. Update ACCOUNT_TYPES in config.py if needed.")
-    print(f"Then re-run to classify with LLM + similarity.\n")
-
-    # Build classification prompt (agent uses this with Claude subagent)
-    prompt = classify_top_accounts_prompt(accounts, ACCOUNT_LLM_TOP_N, ACCOUNT_TYPES)
-    prompt_path = OUTPUT_DIR / f"{COLLECTION_SLUG}_account_classification_prompt.txt"
-    with open(prompt_path, "w") as f:
-        f.write(prompt)
-    print(f"Classification prompt saved → {prompt_path}")
-    print(f"Feed this to a Claude subagent to get classifications.")
-
-    # For now, output with unclassified accounts (agent fills in after LLM step)
-    classifications = {}
-    results = build_output(accounts, classifications)
-
     output_path = OUTPUT_DIR / f"{COLLECTION_SLUG}_accounts.json"
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump({"accounts": results, "stats": {
-            "total_accounts": len(accounts),
-            "total_posts": len(posts),
-            "types": ACCOUNT_TYPES,
-        }}, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved {len(results)} accounts → {output_path}")
+
+    if args.command == "discover":
+        # Step 1: Discovery — show top accounts and generate LLM prompt
+        print(f"\n--- DISCOVERY MODE ---")
+        print(f"Top 20 accounts by post count:")
+        for username, acct in sorted(accounts.items(), key=lambda x: -len(x[1]["posts"]))[:20]:
+            topics = [t for t, _ in acct["topics"].most_common(3)]
+            print(f"  @{username:30s} {len(acct['posts']):4d} posts  topics: {', '.join(topics)}")
+
+        print(f"\nCurrent types: {ACCOUNT_TYPES}")
+        print(f"Review the accounts above. Update ACCOUNT_TYPES in config.py if needed.")
+
+        prompt = classify_top_accounts_prompt(accounts, ACCOUNT_LLM_TOP_N, ACCOUNT_TYPES)
+        prompt_path = OUTPUT_DIR / f"{COLLECTION_SLUG}_account_classification_prompt.txt"
+        with open(prompt_path, "w") as f:
+            f.write(prompt)
+        print(f"\nClassification prompt saved → {prompt_path}")
+        print(f"Feed this to a Claude subagent, save the JSON response, then run:")
+        print(f"  python account_classification.py merge --llm-results <response.json>")
+
+    elif args.command == "merge":
+        # Step 2: Merge LLM results + classify remaining by cosine similarity
+        llm_path = args.llm_results
+        if not llm_path:
+            # Look for default location
+            llm_path = OUTPUT_DIR / f"{COLLECTION_SLUG}_llm_classifications.json"
+            if not llm_path.exists():
+                print("ERROR: No --llm-results provided and no default file found.")
+                print(f"Expected: {llm_path}")
+                print("Run 'discover' first, feed the prompt to a subagent, save the response.")
+                return
+
+        with open(llm_path, "r", encoding="utf-8") as f:
+            llm_results = json.load(f)
+
+        # Build classification dict from LLM results
+        classified = {}
+        for item in llm_results:
+            username = item.get("username", "").lstrip("@")
+            if username:
+                classified[username] = {
+                    "type": item.get("type", "other"),
+                    "role": item.get("role", "amplifier"),
+                    "method": "llm_subagent",
+                }
+        print(f"LLM classified: {len(classified)} accounts")
+
+        # Compute centroids and classify remaining by similarity
+        centroids = compute_account_embeddings(accounts, posts, embeddings)
+
+        # Build type centroids from LLM-classified accounts
+        type_embeddings = {}
+        for username, cls in classified.items():
+            acct_type = cls["type"]
+            if username in centroids:
+                if acct_type not in type_embeddings:
+                    type_embeddings[acct_type] = []
+                type_embeddings[acct_type].append(centroids[username])
+
+        type_centroids = {}
+        for acct_type, vecs in type_embeddings.items():
+            type_centroids[acct_type] = np.mean(vecs, axis=0)
+        print(f"Type centroids: {list(type_centroids.keys())}")
+
+        # Classify remaining accounts
+        similarity_results = classify_remaining_by_similarity(
+            accounts, centroids, type_centroids, classified
+        )
+        print(f"Similarity classified: {len(similarity_results)} accounts")
+
+        # Merge all classifications
+        all_classifications = {**classified, **similarity_results}
+        results = build_output(accounts, all_classifications)
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump({"accounts": results, "stats": {
+                "total_accounts": len(accounts),
+                "total_posts": len(posts),
+                "types": ACCOUNT_TYPES,
+                "llm_classified": len(classified),
+                "similarity_classified": len(similarity_results),
+            }}, f, ensure_ascii=False, indent=2)
+        print(f"\nSaved {len(results)} accounts → {output_path}")
 
 
 if __name__ == "__main__":
