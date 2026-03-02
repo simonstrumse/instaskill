@@ -1,0 +1,5 @@
+# Video template dependencies
+anthropic>=0.20            # Claude API (subagents)
+google-generativeai>=0.4   # Gemini API (Phase 4 only)
+Pillow>=10.0               # Image processing
+# Plus ffmpeg installed on system: brew install ffmpeg
