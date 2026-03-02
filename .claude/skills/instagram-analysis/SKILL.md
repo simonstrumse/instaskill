@@ -21,8 +21,8 @@ description: >
 
 ## Prerequisites
 
-- **Input:** Your `saved_posts.json` — Instagram saved posts with multi-modal fields
-- **Media:** `data/media/instagram/{username}/{post_id}_{hash}.jpg|mp4` (optional, for local thumbnails)
+- **Prior skill:** Run `instagram-pipeline` first to get `saved_posts.json` with captions, media, and extracted text
+- **Media:** `data/media/instagram/{username}/{post_id}_{hash}.jpg|mp4` (downloaded by pipeline skill)
 - **Python:** 3.12+ with venv
 - **Hardware:** Apple Silicon recommended (MPS GPU for sentiment), works on any machine
 
@@ -46,11 +46,37 @@ Each post must have at minimum:
 }
 ```
 
-If `final_explainer` is missing, run synthesis first (Phase 0).
+**If `vision_analysis` is missing** (it will be after `instagram-pipeline`), run Phase 0a first.
+**If `final_explainer` is missing**, run Phase 0b (synthesis) first.
 
 ---
 
-## Phase 0: Synthesis (if needed)
+## Phase 0a: Vision Analysis (if needed)
+
+**When:** Posts lack `vision_analysis` field. This is the case when coming directly from `instagram-pipeline`.
+
+Use a Claude subagent (free on Max plan) or Gemini 2.0 Flash to analyze each post's images/video frames and produce structured visual metadata: mood, tone, categories, tags, content_style, humor_type, sarcasm_level, language.
+
+**Approach:** For each post with local media, send the first image (or a video frame) to a vision model with a prompt like:
+
+```
+Analyze this Instagram post image. Return JSON with:
+- mood (one word), tone (one word)
+- categories (list of 2-5 content categories)
+- tags (list of 5-15 descriptive tags)
+- content_style (e.g., "documentary", "meme", "infographic", "selfie")
+- humor_type (e.g., "none", "satire", "absurdist", "observational")
+- sarcasm_level (0-10 integer)
+- language (ISO code, e.g., "en", "nb", "ar")
+```
+
+Save results as `vision_analysis` on each post in `saved_posts.json`. Process in batches, checkpoint frequently.
+
+**Note:** This step can also run in parallel with Phase 0b since they write different fields.
+
+---
+
+## Phase 0b: Synthesis (if needed)
 
 **When:** Posts lack `final_explainer` field.
 
@@ -250,9 +276,11 @@ Same for `sarcasm_level` — can be string, int, or float. Always type-check.
 
 ## Phase 9: Analysis Report + Exports
 
+**Templates:** `templates/pipeline/analyze_posts.py`, `templates/pipeline/export_data.py`
+
 ```bash
-python3 analyze_posts.py   # comprehensive statistics
-python3 export_data.py     # CSV + JSON exports
+python3 analyze_posts.py   # comprehensive statistics → data/analysis_report.json
+python3 export_data.py     # CSV + JSON exports → data/exports/
 ```
 
 **Exports in `data/exports/`:**
@@ -325,3 +353,15 @@ Phase 5: sentiment_analysis.py├── Phase 6: network_analysis.py
 - Cosine similarity, 384-dim
 
 **Hosted alternative:** Convex (native vector search) or Neon Postgres + pgvector.
+
+---
+
+## Next Skill in Chain
+
+After this skill completes, you have a fully analyzed dataset: embeddings, topics, sentiment, networks, temporal patterns, psychological profile, and a Streamlit dashboard.
+
+**To build an editorial deep dive** on a specific collection (chronicle, person profiles, creator pages), use `instagram-deep-dive`.
+
+**To extract structured data from videos** (recipes, tutorials, exercises), use `video-analysis`.
+
+Both skills expect the analysis outputs from this skill to already exist.

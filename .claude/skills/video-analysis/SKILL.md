@@ -1,3 +1,17 @@
+---
+name: video-analysis
+description: >
+  Multi-model video analysis pipeline: key frame extraction, Claude Opus frame
+  analysis, Gemini full-video enrichment, and deterministic merge with trust
+  hierarchy. Use when the user wants to extract structured data from Instagram
+  reels or video content.
+
+  Trigger when:
+  - User asks to analyze videos or reels
+  - User asks about key frames, video extraction, or video recipes
+  - User wants structured data from video content (recipes, tutorials, exercises)
+---
+
 # Video Analysis Skill
 
 Analyze video content (reels, clips) from Instagram saved posts using key frame extraction and multi-modal AI models.
@@ -10,9 +24,10 @@ Analyze video content (reels, clips) from Instagram saved posts using key frame 
 
 ## Prerequisites
 
+- **Prior skill:** Run `instagram-pipeline` first to download media files
 - **ffmpeg** installed (`brew install ffmpeg`)
-- **Python venv** at `.venv/` with dependencies
-- **Local video files** downloaded (typically in `data/{collection}/videos/`)
+- **Python venv** at `.venv/` with dependencies: `pip install -r templates/video/requirements.txt`
+- **Local video files** — downloaded by `instagram-pipeline` to `data/media/instagram/{username}/`. Filter video files (`.mp4`) from this directory into `data/{collection}/videos/` or point `--video-dir` at the media directory directly.
 - **API keys** in `.env`: `GOOGLE_API_KEY` (for Gemini enrichment, optional)
 
 ## Overview

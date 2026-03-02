@@ -1,3 +1,19 @@
+---
+name: instagram-deep-dive
+description: >
+  Build narrative deep dives from Instagram saved post collections — editorial
+  data magazines with chronicles, person profiles, creator pages, and exploratory
+  analysis. Use when the user wants to create a chronicle, timeline, narrative
+  archive, or editorial deep dive from a saved posts collection.
+
+  Trigger when:
+  - User asks to build a "deep dive" on an Instagram collection
+  - User asks to create a chronicle, timeline, or narrative archive
+  - User asks about Convex schema or queries for Instagram data
+  - User asks to reproduce the deep dive for a new collection
+  - User asks about person profiles, alias tables, or entity extraction
+---
+
 # Instagram Deep Dive Skill
 
 Build narrative deep dives from Instagram saved post collections — editorial data magazines with chronicles, person profiles, creator pages, and exploratory analysis. Each deep dive discovers the unique value of its collection and builds a custom interface to surface it.
@@ -12,9 +28,9 @@ Build narrative deep dives from Instagram saved post collections — editorial d
 
 ## Prerequisites
 
-- Posts already processed through the `instagram-analysis` pipeline (embeddings, topics, sentiment)
-- Your `saved_posts.json` with `vision_analysis`, `extracted_text`, `final_explainer`
-- Python 3.12+ with venv
+- **Prior skills:** Run `instagram-pipeline` then `instagram-analysis` first
+- Posts with `vision_analysis`, `extracted_text`, `final_explainer`, embeddings, topics, sentiment
+- Python 3.12+ with venv — install deep-dive deps: `pip install -r templates/deep-dive/requirements.txt`
 - Node.js 18+ (for Convex + Next.js frontend)
 - The collection must have >200 posts and a coherent theme
 

@@ -45,7 +45,7 @@ echo "Scripts: $SCRIPTS_DIR"
 
 If `SCRIPTS_DIR` is empty, the skill isn't installed. Install with:
 ```bash
-claude plugin add simonstrumse/vibelabs-skills
+claude plugins add simonstrumse/instaskill
 ```
 
 ### Step 1: Create venv and install (first time only)
@@ -228,3 +228,13 @@ Media CDN URLs expire. Run sync again — it will re-fetch fresh URLs and downlo
 
 ### browser_cookie3 fails on macOS
 Grant Terminal (or your IDE) "Full Disk Access" in System Settings > Privacy & Security > Full Disk Access. Chrome's cookie database is in a protected directory.
+
+---
+
+## Next Skill in Chain
+
+After this skill completes, the user's `saved_posts.json` has: `text`, `author`, `collections`, `created_at`, `media` (with local paths), and `extracted_text` (Whisper + OCR).
+
+**The next step is `instagram-analysis`** — which adds `vision_analysis` (AI-generated visual analysis), `final_explainer` (synthesized paragraph), embeddings, topics, sentiment, and more.
+
+The analysis skill's Phase 0 (synthesis) handles the fields this skill doesn't produce.

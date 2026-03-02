@@ -1,66 +1,91 @@
 # instaskill
 
-Claude Code skills + reusable templates for analyzing Instagram saved posts collections.
+Claude Code skills for downloading, analyzing, and building editorial deep dives from your Instagram saved posts.
 
-Four skills that cover the entire Instagram saved posts workflow — from syncing posts directly from Instagram's API through analysis, editorial deep dives, and video extraction.
+Four skills that chain together — from syncing your saves directly from Instagram's API through NLP analysis, narrative archives, and video extraction.
 
-## Quick Start
-
-### 1. Install the skills
+## Install
 
 ```bash
-# Add as a Claude Code plugin
 claude plugins add simonstrumse/instaskill
 ```
 
-### 2. Sync your saved posts from Instagram
+## The Full Pipeline
+
+The skills chain together in order. Each skill's output feeds the next one.
 
 ```
-/instagram-pipeline
+instagram-pipeline → instagram-analysis → instagram-deep-dive
+                                        → video-analysis (optional, for reels)
 ```
 
-Syncs saved posts directly from Instagram's API using Chrome cookies — no archive download needed. Downloads media and extracts text (Whisper transcription + OCR). ~260 posts/min.
-
-### 3. Run the base analysis pipeline
+### Step 1: Download your saved posts
 
 ```
-/instagram-analysis
+Sync my Instagram saved posts using the instagram-pipeline skill
 ```
 
-Processes your `saved_posts.json` through 10 phases: synthesis → embeddings → UMAP → topics → sentiment → networks → temporal → psychological profile → export → dashboard.
+This reads your Chrome cookies and syncs every saved post from Instagram's API — captions, media, timestamps, collection tags, everything. Downloads images and videos, then runs Whisper transcription and OCR to extract text from media.
 
-### 4. Build a deep dive on a collection
+**What you get:** `saved_posts.json` with full post data + local media files + extracted text.
 
-```
-/instagram-deep-dive
-```
-
-Takes a single saved collection (e.g., "Climate", "Music", "Cooking") and builds a full editorial archive: entity extraction, event detection, narrative framing, chronicle prose, person/account profiles, and Convex-backed frontend.
-
-### 5. Extract structured data from videos
+### Step 2: Analyze everything
 
 ```
-/video-analysis
+Run the full analysis pipeline on my saved posts using the instagram-analysis skill
 ```
 
-Multi-model video pipeline: ffmpeg scene detection → Claude Opus frame analysis → Gemini full-video enrichment → deterministic merge with trust hierarchy.
+Processes your posts through 10 phases: AI vision analysis, synthesis, embeddings, UMAP projections, topic modeling, sentiment analysis, network analysis, temporal patterns, psychological profiling, and a Streamlit dashboard.
+
+**What you get:** Embeddings, 10-20 topics, sentiment scores, network graphs, temporal patterns, psychological profile, and an interactive dashboard.
+
+### Step 3: Build a deep dive on a collection
+
+```
+Build a deep dive on my "Cooking" collection using the instagram-deep-dive skill
+```
+
+Picks one of your saved collections and builds a full editorial archive — entity extraction, event detection, narrative framing, chronicle prose, person/account profiles, and a Convex-backed Next.js frontend. Each deep dive discovers what makes that collection unique.
+
+**What you get:** A data journalism website with chronicles, profile pages, and exploratory analysis.
+
+### Step 4 (optional): Extract structured data from videos
+
+```
+Analyze the videos in my "Cooking" collection using the video-analysis skill and extract recipes
+```
+
+Multi-model video pipeline for reels and clips: ffmpeg scene detection → Claude Opus frame analysis → Gemini full-video enrichment → deterministic merge. The extraction schema is customizable — recipes, tutorials, exercises, art analysis, whatever your videos contain.
+
+**What you get:** Structured JSON per video (e.g., recipe ingredients + instructions, tutorial steps, exercise details).
+
+## Or just use natural language
+
+You don't need to remember skill names. Just describe what you want:
+
+- "Download all my Instagram saved posts" → triggers `instagram-pipeline`
+- "How many posts do I have? Show me my collections" → triggers `instagram-pipeline status`
+- "Analyze my saved posts — topics, sentiment, the whole thing" → triggers `instagram-analysis`
+- "I want to build a narrative archive from my Gaza collection" → triggers `instagram-deep-dive`
+- "Extract recipes from the cooking reels" → triggers `video-analysis`
+- "Download my Instagram, analyze everything, and build a deep dive on my Food collection" → chains all three skills
 
 ## Skills
 
-| Skill | What it does |
-|-------|-------------|
-| `instagram-pipeline` | Sync saved posts from Instagram API, download media, extract text (Whisper + OCR). Scripts bundled with skill. |
-| `instagram-analysis` | Full analysis pipeline: raw posts → embeddings, topics, sentiment, networks, temporal patterns, psychological profile |
-| `instagram-deep-dive` | Build narrative archives from a single collection: entities, events, narratives, claims, chronicles, profiles |
-| `video-analysis` | Multi-model video extraction: frames + full-video → structured data with trust hierarchy |
+| Skill | What it does | Input | Output |
+|-------|-------------|-------|--------|
+| `instagram-pipeline` | Sync saved posts from API, download media, Whisper + OCR | Chrome login | `saved_posts.json` + local media |
+| `instagram-analysis` | Vision analysis, synthesis, embeddings, topics, sentiment, networks | `saved_posts.json` | Analysis data + Streamlit dashboard |
+| `instagram-deep-dive` | Entities, events, narratives, chronicles, profiles, frontend | Analyzed posts + collection name | Convex DB + Next.js pages |
+| `video-analysis` | Key frames → Opus analysis → Gemini enrichment → merge | Local video files | Structured JSON per video |
 
 ## Templates
 
-Generalized, runnable scripts the agent adapts to your collection. Not copy-paste — the agent reads these as reference implementations and customizes for your data.
+Generalized scripts the agent reads as reference and adapts to your data. Not copy-paste — the agent customizes paths, schemas, and domain logic for your collection.
 
 ```
 templates/
-├── pipeline/          # 8 analysis scripts (synthesis → psych profile)
+├── pipeline/          # 10 analysis scripts (vision → export)
 ├── deep-dive/         # config.py + 11 scripts (extract → convex export)
 ├── video/             # 4 scripts (prepare → merge)
 ├── convex/            # Schema + query patterns with {prefix} placeholders
@@ -75,33 +100,12 @@ templates/
 | [`DATA_CONTRACT.md`](reference/DATA_CONTRACT.md) | 9 table types with field names, types, indexes, JSON conventions |
 | [`DESIGN_SYSTEM.md`](reference/DESIGN_SYSTEM.md) | Editorial design principles: fonts, colors, spacing, component patterns |
 
-## Examples
-
-- [`sample_config.py`](examples/sample_config.py) — Fictional "Climate" collection config showing all fields
-
-## How Templates Work
-
-Templates use a shared `config.py` pattern. You copy it, fill in your collection details, and the agent runs templates in order:
-
-```python
-# config.py — your collection's identity
-COLLECTION_NAME = "Climate"
-COLLECTION_SLUG = "climate"
-COLLECTION_PREFIX = "climate"  # Convex table prefix
-
-# These start empty — populated as you run the pipeline
-ALIAS_TABLE = {}           # Step 2: entity aliases
-NARRATIVE_FRAMES = []      # Step 5: frames discovered from your data
-CLAIM_CATEGORIES = []      # Step 6: claim types for your domain
-```
-
-The real customization is domain vocabulary (alias tables, frame taxonomies, claim categories), not paths or flags. That's why `config.py` beats argparse.
-
 ## Requirements
 
-- Python 3.12+
+- Python 3.10+ (3.12+ recommended)
 - Claude Code with Max plan (subagents are free)
-- Convex account (for web dashboard)
+- macOS with Apple Silicon (for Whisper MLX + OCR in pipeline skill)
+- Convex account (for deep dive frontend, optional)
 - ffmpeg (for video pipeline only)
 
 ## Architecture
