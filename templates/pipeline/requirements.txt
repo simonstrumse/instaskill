@@ -15,4 +15,6 @@ python-louvain>=0.16
 plotly>=5.15
 streamlit>=1.30
 pyvis>=0.3
-anthropic>=0.20
+
+# OPTIONAL — only needed for --mode api (paid, direct API calls)
+# anthropic>=0.20            # Synthesis API mode only (Phase 0b)

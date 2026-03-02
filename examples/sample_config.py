@@ -3,7 +3,11 @@ Sample config.py for a fictional "Climate" collection deep dive.
 
 Copy this file to your project's deep-dive directory and customize.
 The agent will import these values from config.py in every template script.
+
+Usage: cp examples/sample_config.py your-collection/config.py
 """
+
+from pathlib import Path
 
 # =============================================================================
 # COLLECTION IDENTITY
@@ -18,18 +22,27 @@ COLLECTION_PREFIX = "climate"               # Convex table prefix: climateTimeli
 COLLECTION_FILTER_NAMES = ["Climate & Environment", "Climate"]
 
 # =============================================================================
-# PATHS
+# PATHS — Adjust BASE to your project root
 # =============================================================================
 
-# Source data (from base pipeline)
-POSTS_JSON = "data/instagram/saved_posts.json"      # All 11K+ posts
-EMBEDDINGS_NPY = "data/embeddings.npy"               # 384-dim vectors
-TOPICS_JSON = "data/topic_assignments.json"           # BERTopic results
-SENTIMENT_JSON = "data/sentiment_scores.json"         # Stars + emotions
+BASE = Path(__file__).parent.parent         # Assumes scripts are in {project}/{collection}/
+DATA = BASE / "data"
 
-# Collection output directory
-OUTPUT_DIR = "data/climate"                           # All outputs go here
-CONVEX_EXPORT_DIR = "data/climate/convex_export"      # JSONL files for Convex import
+# Global inputs (from instagram-analysis pipeline)
+POSTS_JSON = DATA / "instagram" / "saved_posts.json"
+POST_IDS_JSON = DATA / "post_ids.json"
+EMBEDDINGS_NPY = DATA / "embeddings.npy"
+TOPICS_JSON = DATA / "topic_assignments.json"
+SENTIMENT_JSON = DATA / "sentiment_scores.json"
+
+# Collection outputs
+OUTPUT_DIR = DATA / COLLECTION_SLUG
+CONVEX_EXPORT_DIR = OUTPUT_DIR / "convex_export"
+
+# Derived paths (used by individual scripts)
+OUTPUT_POSTS = OUTPUT_DIR / f"{COLLECTION_SLUG}_posts.json"
+OUTPUT_EMBEDDINGS = OUTPUT_DIR / f"{COLLECTION_SLUG}_embeddings.npy"
+OUTPUT_POST_IDS = OUTPUT_DIR / f"{COLLECTION_SLUG}_post_ids.json"
 
 # =============================================================================
 # ENTITY EXTRACTION (Step 2)
@@ -131,6 +144,19 @@ CLAIM_CATEGORIES = [
 ]
 
 # =============================================================================
+# CHAPTERS (Step 7)
+# =============================================================================
+
+# Chapters are defined MANUALLY after reviewing event detection output.
+# The agent will help you identify natural breakpoints.
+# Format: {"id": "ch_01", "title": "...", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
+CHAPTERS = [
+    # Populated during Step 7. Example:
+    # {"id": "ch_01", "title": "Early Awareness", "start": "2020-01-01", "end": "2021-06-30"},
+    # {"id": "ch_02", "title": "COP26 Surge", "start": "2021-07-01", "end": "2022-03-31"},
+]
+
+# =============================================================================
 # PROFILE TIERS (Step 9)
 # =============================================================================
 
@@ -158,16 +184,3 @@ DOUBLE_SAVE_TARGETS = {
     # "golden": "Golden inspirational",
     # "anarchy": "Anarchy",
 }
-
-# =============================================================================
-# CHAPTERS (Step 7)
-# =============================================================================
-
-# Chapters are defined MANUALLY after reviewing event detection output.
-# The agent will help you identify natural breakpoints.
-# Format: {"id": "ch_01", "title": "...", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}
-CHAPTERS = [
-    # Populated during Step 7. Example:
-    # {"id": "ch_01", "title": "Early Awareness", "start": "2020-01-01", "end": "2021-06-30"},
-    # {"id": "ch_02", "title": "COP26 Surge", "start": "2021-07-01", "end": "2022-03-31"},
-]

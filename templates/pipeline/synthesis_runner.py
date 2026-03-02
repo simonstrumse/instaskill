@@ -22,7 +22,6 @@ import json
 import os
 import sys
 import time
-import tempfile
 from pathlib import Path
 
 # ============ CONFIGURATION ============
