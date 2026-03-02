@@ -167,9 +167,9 @@ templates/
 
 | Doc | What it covers |
 |-----|---------------|
-| [`GOTCHAS.md`](reference/GOTCHAS.md) | 20+ pitfalls: data types, Convex quirks, frontend traps, LLM variance |
-| [`DATA_CONTRACT.md`](reference/DATA_CONTRACT.md) | 9 table types with field names, types, indexes |
-| [`DESIGN_SYSTEM.md`](reference/DESIGN_SYSTEM.md) | Editorial design: fonts, colors, spacing, component patterns |
+| [`GOTCHAS.md`](plugins/instaskill/reference/GOTCHAS.md) | 20+ pitfalls: data types, Convex quirks, frontend traps, LLM variance |
+| [`DATA_CONTRACT.md`](plugins/instaskill/reference/DATA_CONTRACT.md) | 9 table types with field names, types, indexes |
+| [`DESIGN_SYSTEM.md`](plugins/instaskill/reference/DESIGN_SYSTEM.md) | Editorial design: fonts, colors, spacing, component patterns |
 
 </details>
 
