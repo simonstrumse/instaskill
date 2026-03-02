@@ -136,8 +136,7 @@ def classify_remaining_by_similarity(accounts, centroids, type_centroids, classi
                 best_sim = sim
                 best_type = type_name
 
-        # Determine role: high embedding variance → original content
-        post_indices = [i for i, p in enumerate(acct["posts"])]
+        # Determine role based on content diversity
         role = "amplifier"
         if username in centroids and len(acct["posts"]) >= 3:
             # Simple heuristic: accounts with diverse content are original sources

@@ -119,7 +119,7 @@ def main():
 
     # Resolve collection-scoped paths
     data_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
-    video_dir_resolved = Path(args.video_dir) if args.video_dir else data_dir / "videos"
+    video_dir = Path(args.video_dir) if args.video_dir else data_dir / "videos"
     extracted_path = data_dir / "video_extracted.json"
     output_dir = data_dir / "gemini_enrichments"
     output_path = output_dir / "enrichment_results.json"
@@ -164,7 +164,7 @@ def main():
 
     for i, item in enumerate(remaining):
         post_id = item.get("postId", "")
-        video_path = find_video(post_id, video_dir_resolved)
+        video_path = find_video(post_id, video_dir)
 
         if not video_path:
             print(f"  [{i+1}] {post_id}: no video file, skipping")

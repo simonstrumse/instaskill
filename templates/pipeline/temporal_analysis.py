@@ -38,8 +38,8 @@ def main():
     with open(SENTIMENT_PATH) as f:
         sentiment = json.load(f)
 
-    topic_map = {t["post_id"]: t for t in topics} if isinstance(topics, list) else {}
-    sent_map = {s["post_id"]: s for s in sentiment} if isinstance(sentiment, list) else sentiment
+    topic_map = {t["post_id"]: t for t in topics if "post_id" in t} if isinstance(topics, list) else {}
+    sent_map = {s["post_id"]: s for s in sentiment if "post_id" in s} if isinstance(sentiment, list) else sentiment
 
     print(f"Posts: {len(posts)}, Topics: {len(topic_map)}, Sentiment: {len(sent_map)}")
 
@@ -60,10 +60,8 @@ def main():
     # Monthly sentiment
     monthly_sentiment = defaultdict(list)
     monthly_emotions = defaultdict(lambda: defaultdict(float))
-    monthly_post_count = Counter()
     for p in posts:
         month = p.get("saved_on", p.get("created_at", ""))[:7]
-        monthly_post_count[month] += 1
         sent = sent_map.get(p["id"], {})
         monthly_sentiment[month].append(sent.get("stars", 3))
         for emo, score in sent.get("emotions", {}).items():
@@ -118,7 +116,7 @@ def main():
             for m, v in sorted(monthly_sentiment.items())
         },
         "monthly_emotions": {
-            m: {k: round(v / max(monthly_post_count[m], 1), 4) for k, v in emos.items()}
+            m: {k: round(v / max(len(monthly_sentiment.get(m, [])), 1), 4) for k, v in emos.items()}
             for m, emos in sorted(monthly_emotions.items())
         },
         "interest_drift": drift,

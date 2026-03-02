@@ -125,18 +125,24 @@ def build_vision_messages(batch_items, text_prompt):
     return [{"role": "user", "content": content}]
 
 
+def get_processed(batch_dir):
+    """Scan batch result files to find already-processed post IDs."""
+    existing = set()
+    batch_files = []
+    if batch_dir.exists():
+        batch_files = sorted(batch_dir.glob("batch_*.json"))
+        for f in batch_files:
+            with open(f) as fh:
+                for item in json.load(fh):
+                    existing.add(item.get("postId", ""))
+    return existing, batch_files
+
+
 def generate_subagent_prompts(manifest, batch_size, prompts_dir, batch_dir):
     """Generate prompt files that an agent can feed to Claude subagents (FREE)."""
     prompts_dir.mkdir(parents=True, exist_ok=True)
 
-    # Skip already-processed
-    existing = set()
-    if batch_dir.exists():
-        for f in batch_dir.glob("batch_*.json"):
-            with open(f) as fh:
-                for item in json.load(fh):
-                    existing.add(item.get("postId", ""))
-
+    existing, _ = get_processed(batch_dir)
     remaining = [m for m in manifest if m["postId"] not in existing]
     print(f"Total: {len(manifest)}, Already processed: {len(existing)}, Remaining: {len(remaining)}")
 
@@ -177,18 +183,12 @@ def run_api_mode(manifest, model, batch_size, batch_dir):
     from anthropic import Anthropic
     client = Anthropic()
 
-    existing = set()
-    if batch_dir.exists():
-        for f in batch_dir.glob("batch_*.json"):
-            with open(f) as fh:
-                for item in json.load(fh):
-                    existing.add(item.get("postId", ""))
-
+    existing, batch_files = get_processed(batch_dir)
     remaining = [m for m in manifest if m["postId"] not in existing]
     print(f"Total: {len(manifest)}, Already processed: {len(existing)}, Remaining: {len(remaining)}")
 
     batch_dir.mkdir(parents=True, exist_ok=True)
-    batch_idx = len(list(batch_dir.glob("batch_*.json")))
+    batch_idx = len(batch_files)
 
     for i in range(0, len(remaining), batch_size):
         batch = remaining[i:i+batch_size]

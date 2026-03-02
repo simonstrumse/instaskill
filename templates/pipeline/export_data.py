@@ -31,31 +31,26 @@ POST_IDS_PATH = os.path.join(DATA, "post_ids.json")
 os.makedirs(EXPORTS, exist_ok=True)
 
 
+def load_keyed(path, key="post_id"):
+    """Load a JSON file and normalize to a dict keyed by `key`.
+    Upstream writes lists of {post_id, ...}; this converts to {post_id: item}."""
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        raw = json.load(f)
+    if isinstance(raw, list):
+        return {item[key]: item for item in raw if key in item}
+    return raw
+
+
 def load_all():
     """Load posts + all analysis outputs, returning merged lookup dicts."""
     print("Loading all data...")
     with open(INPUT_PATH, "r", encoding="utf-8") as f:
         posts = json.load(f)
 
-    topics = {}
-    if os.path.exists(TOPIC_PATH):
-        with open(TOPIC_PATH) as f:
-            raw = json.load(f)
-        # Upstream writes a list of {post_id, topic_id, topic_label, ...}
-        if isinstance(raw, list):
-            topics = {item["post_id"]: item for item in raw if "post_id" in item}
-        else:
-            topics = raw
-
-    sentiments = {}
-    if os.path.exists(SENTIMENT_PATH):
-        with open(SENTIMENT_PATH) as f:
-            raw = json.load(f)
-        # Upstream writes a list of {post_id, stars, dominant_emotion, emotions, ...}
-        if isinstance(raw, list):
-            sentiments = {item["post_id"]: item for item in raw if "post_id" in item}
-        else:
-            sentiments = raw
+    topics = load_keyed(TOPIC_PATH)
+    sentiments = load_keyed(SENTIMENT_PATH)
 
     umap_coords = {}
     if os.path.exists(UMAP_2D_PATH) and os.path.exists(POST_IDS_PATH):
