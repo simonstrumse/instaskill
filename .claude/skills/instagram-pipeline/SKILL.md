@@ -115,7 +115,6 @@ for p in posts:
         cols[c] += 1
 print(f'\nCollections ({len(cols)}):')
 for name, count in cols.most_common(15):
-    ext = sum(1 for p in posts if c in p.get('collections',[]) and p.get('extracted_text'))
     print(f'  {name}: {count}')
 "
 ```
