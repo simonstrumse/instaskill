@@ -66,7 +66,8 @@ instaskill is a set of Claude Code skills that sync your saves, run them through
 ## Quick start
 
 ```bash
-claude plugins add simonstrumse/instaskill
+claude plugin marketplace add simonstrumse/instaskill
+claude plugin install instaskill
 ```
 
 Then just tell Claude what you want:
