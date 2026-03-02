@@ -56,11 +56,11 @@ dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
 ## Convex
 
 ### Case-sensitive string queries
-Convex string equality is case-sensitive. `"Gaza"` ≠ `"gaza"`. When filtering by collection name, match the exact casing in your data:
+Convex string equality is case-sensitive. `"Climate"` ≠ `"climate"`. When filtering by collection name, match the exact casing in your data:
 ```typescript
-// WRONG: ctx.db.query("posts").filter(q => q.eq(q.field("collection"), "gaza"))
+// WRONG: ctx.db.query("posts").filter(q => q.eq(q.field("collection"), "climate"))
 // RIGHT: use the exact string from saved_posts.json
-ctx.db.query("posts").filter(q => q.eq(q.field("collection"), "Gaza"))
+ctx.db.query("posts").filter(q => q.eq(q.field("collection"), "Climate"))
 ```
 
 ### JSONL import needs --replace for updates

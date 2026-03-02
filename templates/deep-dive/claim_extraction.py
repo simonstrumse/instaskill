@@ -10,9 +10,7 @@ Customize: CLAIM_CATEGORIES in config.py
 """
 
 import json
-import sys
 from collections import Counter
-from pathlib import Path
 
 from config import (
     COLLECTION_SLUG, COLLECTION_NAME, CLAIM_CATEGORIES,

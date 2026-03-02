@@ -239,7 +239,7 @@ Complex fields (arrays, nested objects) are stored as JSON strings and parsed in
 
 #### Convex-specific gotchas
 
-- String queries are **case-sensitive** — `"Gaza"` != `"gaza"`. Always spot-check
+- String queries are **case-sensitive** — `"Climate"` != `"climate"`. Always spot-check
 - JSONL import **appends** by default — always use `--replace` flag
 - Large JSON fields (>50KB) can truncate on import — use Node `ConvexHttpClient` mutation for oversized rows
 - Non-interactive terminal: `CONVEX_DEPLOYMENT="dev:your-name" npx convex dev --once`
@@ -307,14 +307,16 @@ After running Steps 1-5, ask:
 - What **emotional arc** does the timeline show? (This tells you the story)
 - What makes this collection **different** from the others? (This is your hook)
 
-### Examples from the original project
+### What a deep dive can look like (examples)
 
-| Collection | Posts | Unique value | Custom interface |
-|-----------|-------|-------------|-----------------|
-| Gaza | 6,861 | Witness-to-catastrophe over 2 years | 12-page chronicle, accountability tracker, Norwegian connection page |
-| Counterculture | 1,415 | Satirical resistance with voice/subject split | Power analysis, voices vs. subjects classification |
-| Food | 851 | 760 extractable recipes hidden in reels | Full cookbook with recipe detail pages, creator profiles |
-| AI | ~202 | Fastest-growing collection, tool ecosystem | Toolkit page, signal/pulse/circuit metaphor |
+Each collection discovers its own unique angle. Here are examples of what different types of collections produced during development:
+
+| Type | Size | Unique value | Custom interface |
+|------|------|-------------|-----------------|
+| News/conflict | ~7,000 | Chronological witness archive | Multi-page chronicle, accountability tracker, connection pages |
+| Satirical/political | ~1,400 | Voice/subject analysis, satire detection | Power analysis, voices vs. subjects classification |
+| Recipe/cooking | ~850 | Extractable recipes from video reels | Full cookbook with recipe detail pages, creator profiles |
+| Tech/tools | ~200 | Fast-growing ecosystem tracking | Toolkit pages, trend detection, signal taxonomy |
 
 ### Minimum page quality checklist
 

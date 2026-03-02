@@ -13,8 +13,6 @@ Customize: Set COLLECTION_FILTER_NAMES and DOUBLE_SAVE_TARGETS in config.py
 import json
 import sys
 from datetime import datetime
-from pathlib import Path
-
 import numpy as np
 
 from config import (

@@ -21,7 +21,6 @@ import time
 import urllib.request
 import urllib.parse
 from collections import Counter, defaultdict
-from pathlib import Path
 
 from config import (
     COLLECTION_SLUG, COLLECTION_PREFIX, ALIAS_TABLE, ENTITY_METADATA,

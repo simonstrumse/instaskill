@@ -15,10 +15,8 @@ Customize: EVENT_AGGREGATION, EVENT_Z_THRESHOLD, EVENT_PELT_PENALTY in config.py
 """
 
 import json
-import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import numpy as np
 

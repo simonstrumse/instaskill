@@ -7,8 +7,8 @@ Authoritative schema for all tables that templates produce. Every deep dive gene
 ## Naming Convention
 
 All tables use camelCase with the collection prefix:
-- `{prefix}Timeline` — e.g., `gazaTimeline`, `foodTimeline`, `climateTimeline`
-- `{prefix}Chapters` — e.g., `gazaChapters`
+- `{prefix}Timeline` — e.g., `climateTimeline`, `cookingTimeline`
+- `{prefix}Chapters` — e.g., `climateChapters`
 - etc.
 
 The prefix is set in `config.py` as `COLLECTION_PREFIX`.

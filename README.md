@@ -66,9 +66,9 @@ You don't need to remember skill names. Just describe what you want:
 - "Download all my Instagram saved posts" → triggers `instagram-pipeline`
 - "How many posts do I have? Show me my collections" → triggers `instagram-pipeline status`
 - "Analyze my saved posts — topics, sentiment, the whole thing" → triggers `instagram-analysis`
-- "I want to build a narrative archive from my Gaza collection" → triggers `instagram-deep-dive`
+- "I want to build a narrative archive from my Travel collection" → triggers `instagram-deep-dive`
 - "Extract recipes from the cooking reels" → triggers `video-analysis`
-- "Download my Instagram, analyze everything, and build a deep dive on my Food collection" → chains all three skills
+- "Download my Instagram, analyze everything, and build a deep dive on my Cooking collection" → chains all three skills
 
 ## Skills
 
@@ -124,7 +124,7 @@ The entire pipeline works on a Max plan with zero API keys. Each skill offers an
 
 ## Architecture
 
-Built from analyzing 11,323 Instagram saved posts across 5 collection deep dives (Gaza, Food, Counterculture, AI, Hundetrening). Every template has been battle-tested on real data.
+Built from analyzing 11,000+ Instagram saved posts across 5 collection deep dives. Every template has been battle-tested on real data.
 
 **Design principles:**
 - **Agentic-first:** Prefer LLM subagents over deterministic scripts. The quality ceiling is always higher.

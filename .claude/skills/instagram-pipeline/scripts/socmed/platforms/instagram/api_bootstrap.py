@@ -7,7 +7,7 @@ so they skip straight to extraction (Whisper + OCR).
 
 Usage:
     .venv/bin/python3 -m socmed.platforms.instagram.api_bootstrap sync
-    .venv/bin/python3 -m socmed.platforms.instagram.api_bootstrap sync --collection Hundetriks
+    .venv/bin/python3 -m socmed.platforms.instagram.api_bootstrap sync --collection "My Collection"
     .venv/bin/python3 -m socmed.platforms.instagram.api_bootstrap sync --limit 100
     .venv/bin/python3 -m socmed.platforms.instagram.api_bootstrap collections
     .venv/bin/python3 -m socmed.platforms.instagram.api_bootstrap stats

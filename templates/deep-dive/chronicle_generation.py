@@ -14,9 +14,6 @@ these prompts to Claude subagents and collects the results.
 """
 
 import json
-import sys
-import time
-from pathlib import Path
 
 from config import (
     COLLECTION_SLUG, COLLECTION_NAME, COLLECTION_PREFIX,

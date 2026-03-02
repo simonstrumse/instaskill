@@ -17,9 +17,6 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
-from datetime import datetime
-from pathlib import Path
-
 from config import (
     COLLECTION_SLUG, ENTITY_APPROACH, ALIAS_TABLE, ENTITY_METADATA,
     FUZZY_MATCH_THRESHOLD, OUTPUT_DIR, OUTPUT_POSTS,

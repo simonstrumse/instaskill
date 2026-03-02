@@ -23,7 +23,6 @@ Usage:
 
 import base64
 import json
-import sys
 import time
 from pathlib import Path
 
@@ -126,14 +125,14 @@ def build_vision_messages(batch_items, text_prompt):
     return [{"role": "user", "content": content}]
 
 
-def generate_subagent_prompts(manifest, batch_size):
+def generate_subagent_prompts(manifest, batch_size, prompts_dir, batch_dir):
     """Generate prompt files that an agent can feed to Claude subagents (FREE)."""
-    PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
+    prompts_dir.mkdir(parents=True, exist_ok=True)
 
     # Skip already-processed
     existing = set()
-    if BATCH_DIR.exists():
-        for f in BATCH_DIR.glob("batch_*.json"):
+    if batch_dir.exists():
+        for f in batch_dir.glob("batch_*.json"):
             with open(f) as fh:
                 for item in json.load(fh):
                     existing.add(item.get("postId", ""))
@@ -151,12 +150,12 @@ def generate_subagent_prompts(manifest, batch_size):
         prompt = build_batch_prompt(batch)
 
         # Write prompt text
-        prompt_path = PROMPTS_DIR / f"batch_{batch_num:04d}.txt"
+        prompt_path = prompts_dir / f"batch_{batch_num:04d}.txt"
         with open(prompt_path, "w") as f:
             f.write(f"SYSTEM: {SYSTEM_PROMPT}\n\n{prompt}")
 
         # Write frame paths for the agent to include as images
-        frames_path = PROMPTS_DIR / f"batch_{batch_num:04d}_frames.json"
+        frames_path = prompts_dir / f"batch_{batch_num:04d}_frames.json"
         frame_data = []
         for item in batch:
             frame_data.append({
@@ -168,19 +167,19 @@ def generate_subagent_prompts(manifest, batch_size):
 
         batch_num += 1
 
-    print(f"\nGenerated {batch_num} prompt files in {PROMPTS_DIR}/")
+    print(f"\nGenerated {batch_num} prompt files in {prompts_dir}/")
     print(f"For each batch, feed the prompt + frame images to a Claude Opus subagent.")
-    print(f"Save results as batch_NNNN.json in {BATCH_DIR}/, then run 'merge' to combine.")
+    print(f"Save results as batch_NNNN.json in {batch_dir}/, then run 'merge' to combine.")
 
 
-def run_api_mode(manifest, model, batch_size):
+def run_api_mode(manifest, model, batch_size, batch_dir):
     """Run analysis via direct Anthropic API calls (PAID)."""
     from anthropic import Anthropic
     client = Anthropic()
 
     existing = set()
-    if BATCH_DIR.exists():
-        for f in BATCH_DIR.glob("batch_*.json"):
+    if batch_dir.exists():
+        for f in batch_dir.glob("batch_*.json"):
             with open(f) as fh:
                 for item in json.load(fh):
                     existing.add(item.get("postId", ""))
@@ -188,8 +187,8 @@ def run_api_mode(manifest, model, batch_size):
     remaining = [m for m in manifest if m["postId"] not in existing]
     print(f"Total: {len(manifest)}, Already processed: {len(existing)}, Remaining: {len(remaining)}")
 
-    BATCH_DIR.mkdir(parents=True, exist_ok=True)
-    batch_idx = len(list(BATCH_DIR.glob("batch_*.json")))
+    batch_dir.mkdir(parents=True, exist_ok=True)
+    batch_idx = len(list(batch_dir.glob("batch_*.json")))
 
     for i in range(0, len(remaining), batch_size):
         batch = remaining[i:i+batch_size]
@@ -213,7 +212,7 @@ def run_api_mode(manifest, model, batch_size):
                 match = re.search(r'\[.*\]', text, re.DOTALL)
                 results = json.loads(match.group()) if match else []
 
-            batch_path = BATCH_DIR / f"batch_{batch_idx:04d}.json"
+            batch_path = batch_dir / f"batch_{batch_idx:04d}.json"
             with open(batch_path, "w") as f:
                 json.dump(results, f, ensure_ascii=False, indent=2)
             print(f"OK ({len(results)} results)")
@@ -280,10 +279,10 @@ def main():
 
     if args.mode == "api":
         print(f"Running in API mode (PAID — requires ANTHROPIC_API_KEY, model: {args.model})")
-        run_api_mode(manifest, args.model, args.batch_size)
+        run_api_mode(manifest, args.model, args.batch_size, batch_dir)
     else:
         print("Running in subagent mode (FREE on Max plan)")
-        generate_subagent_prompts(manifest, args.batch_size)
+        generate_subagent_prompts(manifest, args.batch_size, prompts_dir, batch_dir)
 
 
 if __name__ == "__main__":

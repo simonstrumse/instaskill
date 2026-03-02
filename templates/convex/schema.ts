@@ -27,7 +27,7 @@ export default defineSchema({
     postId: v.string(),
     text: v.optional(v.string()),
     author: v.optional(v.string()),          // @username
-    collections: v.optional(v.string()),     // JSON: ["Gaza", "Golden"]
+    collections: v.optional(v.string()),     // JSON: ["Climate", "Cooking"]
     createdAt: v.optional(v.string()),       // ISO datetime
     savedOn: v.optional(v.string()),         // ISO datetime
     finalExplainer: v.optional(v.string()),  // 100-400 word synthesis

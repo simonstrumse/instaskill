@@ -12,7 +12,7 @@ Customize: INPUT_PATH, OUTPUT_PATH
 
 import json
 import os
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone
 
 # ── Configuration ──────────────────────────────────────────────────────────

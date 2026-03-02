@@ -12,8 +12,6 @@ Output: {OUTPUT_DIR}/{slug}_timeline.json
 import json
 import sys
 from collections import Counter, defaultdict
-from datetime import datetime
-from pathlib import Path
 
 from config import (
     COLLECTION_SLUG, COLLECTION_NAME, CHAPTERS,
