@@ -1,87 +1,153 @@
-# instaskill
+<div align="center">
 
-Claude Code skills for downloading, analyzing, and building editorial deep dives from your Instagram saved posts.
+```
 
-Four skills that chain together — from syncing your saves directly from Instagram's API through NLP analysis, narrative archives, and video extraction.
+   ╦╔╗╔╔═╗╔╦╗╔═╗╔═╗╦╔═╦╦  ╦
+   ║║║║╚═╗ ║ ╠═╣╚═╗╠╩╗║║  ║
+   ╩╝╚╝╚═╝ ╩ ╩ ╩╚═╝╩ ╩╩╩═╝╩═╝
 
-## Install
+```
+
+**Your Instagram saved posts are a personal archive. This turns them into something you can search, explore, and learn from.**
+
+[![Claude Code](https://img.shields.io/badge/Claude_Code-skill_package-7C3AED?style=flat-square)](https://claude.com/claude-code)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Free on Max](https://img.shields.io/badge/free_on-Max_plan-10A37F?style=flat-square)](https://claude.com)
+
+[How it works](#how-it-works) · [Quick start](#quick-start) · [What you get](#what-you-get) · [Skills](#skills)
+
+</div>
+
+<br>
+
+<div align="center">
+  <img src="assets/galaxy.png" alt="11,323 Instagram saved posts projected into 2D space — each dot is a post, proximity means similarity, colors are collections" width="720">
+  <br>
+  <sub>11,323 saved posts projected from 384 dimensions into two — proximity is similarity, clusters are neighborhoods of meaning</sub>
+</div>
+
+<br>
+
+---
+
+Most people have thousands of saved Instagram posts sitting in a pile. You saved them for a reason — a recipe you wanted to try, a place you wanted to visit, an idea that stuck with you — but there's no way to search them, see patterns, or do anything with them at scale.
+
+instaskill is a set of Claude Code skills that sync your saves, run them through a full analysis pipeline, and let you build deep dives on the collections that matter to you. The entire thing runs free on a Max plan.
+
+---
+
+## How it works
+
+```
+  ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+  │                  │     │                  │     │                  │
+  │  1. SYNC         │────▶│  2. ANALYZE      │────▶│  3. DEEP DIVE    │
+  │                  │     │                  │     │                  │
+  │  Fetch saved     │     │  Embeddings,     │     │  Entities,       │
+  │  posts from API, │     │  topics,         │     │  events,         │
+  │  download media, │     │  sentiment,      │     │  narratives,     │
+  │  transcribe      │     │  networks,       │     │  chronicles,     │
+  │  audio + OCR     │     │  temporal        │     │  profiles,       │
+  │                  │     │  patterns        │     │  frontend        │
+  └─────────────────┘     └────────┬─────────┘     └─────────────────┘
+                                   │
+                                   │  ┌─────────────────┐
+                                   └─▶│  4. VIDEO        │  (optional)
+                                      │                  │
+                                      │  Key frames →    │
+                                      │  Opus analysis → │
+                                      │  Gemini enrich → │
+                                      │  merge           │
+                                      └─────────────────┘
+```
+
+## Quick start
 
 ```bash
 claude plugins add simonstrumse/instaskill
 ```
 
-## The Full Pipeline
-
-The skills chain together in order. Each skill's output feeds the next one.
+Then just tell Claude what you want:
 
 ```
-instagram-pipeline → instagram-analysis → instagram-deep-dive
-                                        → video-analysis (optional, for reels)
+Sync my Instagram saved posts
+```
+```
+Analyze my saved posts — topics, sentiment, the whole thing
+```
+```
+Build a deep dive on my "Cooking" collection
+```
+```
+Extract recipes from the cooking reels
 ```
 
-### Step 1: Download your saved posts
+You don't need to remember skill names. Natural language works. Claude figures out which skill to run.
 
-```
-Sync my Instagram saved posts using the instagram-pipeline skill
-```
+---
 
-This reads your Chrome cookies and syncs every saved post from Instagram's API — captions, media, timestamps, collection tags, everything. Downloads images and videos, then runs Whisper transcription and OCR to extract text from media.
+## What you get
 
-**What you get:** `saved_posts.json` with full post data + local media files + extracted text.
+<table>
+<tr>
+<td width="50%">
 
-### Step 2: Analyze everything
+**After sync**
+- All your saved posts as structured JSON
+- Local copies of every image and video
+- Whisper transcriptions + OCR text
 
-```
-Run the full analysis pipeline on my saved posts using the instagram-analysis skill
-```
+</td>
+<td width="50%">
 
-Processes your posts through 10 phases: AI vision analysis, synthesis, embeddings, UMAP projections, topic modeling, sentiment analysis, network analysis, temporal patterns, psychological profiling, and a Streamlit dashboard.
+**After analysis**
+- 384-dim embeddings + UMAP galaxy view
+- 10-20 auto-discovered topics
+- Sentiment scores + 7-class emotion profiles
+- Account networks + tag co-occurrence graphs
+- Temporal patterns, bursts, psychological profile
 
-**What you get:** Embeddings, 10-20 topics, sentiment scores, network graphs, temporal patterns, psychological profile, and an interactive dashboard.
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-### Step 3: Build a deep dive on a collection
+**After deep dive**
+- Entity extraction (alias-based or account-based)
+- Event detection (z-score + PELT + Kleinberg)
+- Narrative frame classification
+- Chronicle prose (editorial, not bullet points)
+- Person + account profile pages
+- Convex-backed Next.js frontend
 
-```
-Build a deep dive on my "Cooking" collection using the instagram-deep-dive skill
-```
+</td>
+<td width="50%">
 
-Picks one of your saved collections and builds a full editorial archive — entity extraction, event detection, narrative framing, chronicle prose, person/account profiles, and a Convex-backed Next.js frontend. Each deep dive discovers what makes that collection unique.
+**After video analysis**
+- Structured data from every reel
+- Recipes, tutorials, exercises — whatever your videos contain
+- Multi-model pipeline: Opus sees frames, Gemini watches full video
+- Deterministic merge with trust hierarchy
 
-**What you get:** A data journalism website with chronicles, profile pages, and exploratory analysis.
+</td>
+</tr>
+</table>
 
-### Step 4 (optional): Extract structured data from videos
-
-```
-Analyze the videos in my "Cooking" collection using the video-analysis skill and extract recipes
-```
-
-Multi-model video pipeline for reels and clips: ffmpeg scene detection → Claude Opus frame analysis → Gemini full-video enrichment → deterministic merge. The extraction schema is customizable — recipes, tutorials, exercises, art analysis, whatever your videos contain.
-
-**What you get:** Structured JSON per video (e.g., recipe ingredients + instructions, tutorial steps, exercise details).
-
-## Or just use natural language
-
-You don't need to remember skill names. Just describe what you want:
-
-- "Download all my Instagram saved posts" → triggers `instagram-pipeline`
-- "How many posts do I have? Show me my collections" → triggers `instagram-pipeline status`
-- "Analyze my saved posts — topics, sentiment, the whole thing" → triggers `instagram-analysis`
-- "I want to build a narrative archive from my Travel collection" → triggers `instagram-deep-dive`
-- "Extract recipes from the cooking reels" → triggers `video-analysis`
-- "Download my Instagram, analyze everything, and build a deep dive on my Cooking collection" → chains all three skills
+---
 
 ## Skills
 
 | Skill | What it does | Input | Output |
 |-------|-------------|-------|--------|
-| `instagram-pipeline` | Sync saved posts from API, download media, Whisper + OCR | Chrome login | `saved_posts.json` + local media |
-| `instagram-analysis` | Vision analysis, synthesis, embeddings, topics, sentiment, networks | `saved_posts.json` | Analysis data + Streamlit dashboard |
-| `instagram-deep-dive` | Entities, events, narratives, chronicles, profiles, frontend | Analyzed posts + collection name | Convex DB + Next.js pages |
-| `video-analysis` | Key frames → Opus analysis → Gemini enrichment → merge | Local video files | Structured JSON per video |
+| `instagram-pipeline` | Sync saved posts, download media, Whisper + OCR | Chrome login | `saved_posts.json` + media |
+| `instagram-analysis` | Embeddings, topics, sentiment, networks, temporal | `saved_posts.json` | Analysis data + dashboard |
+| `instagram-deep-dive` | Entities, events, narratives, chronicles, profiles | Analyzed posts | Convex DB + Next.js |
+| `video-analysis` | Key frames → Opus → Gemini → merge | Video files | Structured JSON |
 
-## Templates
+The `instagram-pipeline` skill bundles runnable scripts directly. The other three are **template-driven** — the agent reads reference scripts and adapts them to your data, customizing paths, schemas, and domain logic for your collection.
 
-The `instagram-pipeline` skill bundles runnable scripts directly — just install and run. The other three skills (`instagram-analysis`, `instagram-deep-dive`, `video-analysis`) are **template-driven**: the agent reads the reference scripts below and adapts them to your data. Not copy-paste — the agent customizes paths, schemas, and domain logic for your collection.
+<details>
+<summary><strong>Templates</strong></summary>
 
 ```
 templates/
@@ -92,46 +158,54 @@ templates/
 └── frontend/          # 5 annotated TSX patterns (layout → person detail)
 ```
 
-## Reference Docs
+</details>
+
+<details>
+<summary><strong>Reference docs</strong></summary>
 
 | Doc | What it covers |
 |-----|---------------|
-| [`GOTCHAS.md`](reference/GOTCHAS.md) | 20+ pitfalls from 5 collections: data types, Convex quirks, frontend traps, LLM variance |
-| [`DATA_CONTRACT.md`](reference/DATA_CONTRACT.md) | 9 table types with field names, types, indexes, JSON conventions |
-| [`DESIGN_SYSTEM.md`](reference/DESIGN_SYSTEM.md) | Editorial design principles: fonts, colors, spacing, component patterns |
+| [`GOTCHAS.md`](reference/GOTCHAS.md) | 20+ pitfalls: data types, Convex quirks, frontend traps, LLM variance |
+| [`DATA_CONTRACT.md`](reference/DATA_CONTRACT.md) | 9 table types with field names, types, indexes |
+| [`DESIGN_SYSTEM.md`](reference/DESIGN_SYSTEM.md) | Editorial design: fonts, colors, spacing, component patterns |
+
+</details>
+
+---
+
+## Free vs. paid
+
+The entire pipeline runs free on a Max plan — no API keys needed. Paid modes exist as optional accelerators:
+
+| What | Free (Max plan) | Paid (API keys) |
+|------|----------------|-----------------|
+| Sync + download | Chrome cookies | — |
+| Vision analysis | Claude subagents | Gemini 2.0 Flash |
+| Synthesis | Claude subagents | Anthropic API |
+| Embeddings, topics, sentiment | Local models | — |
+| Video frame analysis | Claude subagents | Anthropic API |
+| Video enrichment | Skip | Gemini API |
+| Deep dive | Claude subagents | — |
 
 ## Requirements
 
-- Python 3.10+ (3.12+ recommended)
-- Claude Code with Max plan (subagents are free — the entire pipeline can run without API keys)
-- macOS with Apple Silicon (for Whisper MLX + OCR in pipeline skill)
-- ffmpeg (for pipeline media extraction + video analysis)
+- Python 3.10+ (3.12 recommended)
+- Claude Code with Max plan
+- macOS with Apple Silicon (for Whisper MLX + OCR)
+- ffmpeg (`brew install ffmpeg`)
 - Convex account (for deep dive frontend, optional)
 
-### What's free vs. paid
+---
 
-The entire pipeline works on a Max plan with zero API keys. Each skill offers an optional paid mode for faster batch processing:
+## Design principles
 
-| Feature | Free (Max plan) | Paid (API keys) |
-|---------|----------------|-----------------|
-| Sync + download posts | Free (Chrome cookies) | — |
-| Vision analysis | Claude subagents | Gemini 2.0 Flash |
-| Synthesis | Claude subagents | Anthropic API (Haiku) |
-| Embeddings, topics, sentiment | Local models | — |
-| Video frame analysis | Claude subagents | Anthropic API (Opus) |
-| Video enrichment | Skip (optional) | Gemini API |
-| Deep dive (entities, events, etc.) | Claude subagents | — |
+- **Agentic-first.** Prefer LLM subagents over deterministic scripts. The quality ceiling is always higher.
+- **Discovery over configuration.** Narrative frames, account types, and entity aliases emerge from your data — not copied from a template.
+- **Trust hierarchy.** For multi-model pipelines: Opus = ground truth, Gemini = additive only, merge = deterministic.
+- **Editorial, not SaaS.** The frontend follows data journalism aesthetics (ProPublica, The Pudding), not dashboard conventions.
 
-## Architecture
+---
 
-Built from analyzing 11,000+ Instagram saved posts across 5 collection deep dives. Every template has been battle-tested on real data.
-
-**Design principles:**
-- **Agentic-first:** Prefer LLM subagents over deterministic scripts. The quality ceiling is always higher.
-- **Discovery over configuration:** Narrative frames, account types, and entity aliases emerge from your data — not copied from another collection.
-- **Trust hierarchy:** For multi-model pipelines, establish ground truth (Opus) and additive-only enrichment (Gemini).
-- **Editorial, not SaaS:** The frontend follows data journalism aesthetics (ProPublica, The Pudding), not dashboard conventions.
-
-## Author
-
-Simon Strumse
+<div align="center">
+  <sub>Built by <a href="https://github.com/simonstrumse">Simon Strumse</a> · Powered by <a href="https://claude.com/claude-code">Claude Code</a></sub>
+</div>
