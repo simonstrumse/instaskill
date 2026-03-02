@@ -338,7 +338,8 @@ Phase 5: sentiment_analysis.py├── Phase 6: network_analysis.py
 
 **Phases 2 and 5 are independent** — run in parallel for ~2x speedup.
 **Phases 3, 4, 6 depend on 2** (need embeddings).
-**Phases 7, 8 depend on 4+5** (need topics + sentiment).
+**Phase 7 depends on 4+5** (needs topics + sentiment).
+**Phase 8 depends on 5+7** (needs sentiment + temporal patterns).
 
 ---
 
