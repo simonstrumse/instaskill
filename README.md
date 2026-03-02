@@ -153,7 +153,7 @@ The `instagram-pipeline` skill bundles runnable scripts directly. The other thre
 <summary><strong>Templates</strong></summary>
 
 ```
-templates/
+plugins/instaskill/templates/
 ├── pipeline/          # 10 analysis scripts (vision → export)
 ├── deep-dive/         # config.py + 11 scripts (extract → convex export)
 ├── video/             # 4 scripts (prepare → merge)
